@@ -31,6 +31,10 @@ void Game::readInput()
     input.click = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
     input.mouse = GetMousePosition();
     input.mouseDelta = GetMouseDelta();
+    input.movement = {
+        static_cast<float>(IsKeyDown(KEY_D) - IsKeyDown(KEY_A)),
+        static_cast<float>(IsKeyDown(KEY_S) - IsKeyDown(KEY_W))
+    };
 }
 
 void Game::changeState(GameState nextState)
@@ -42,8 +46,10 @@ void Game::changeState(GameState nextState)
 
 void Game::startNewGame()
 {
-    // Todo estado da partida deve ser recriado aqui conforme os sistemas surgirem.
     elapsedTime = 0.0f;
+    room = Room();
+    player = Player(room.getSpawn());
+    camera = room.getCamera(GetScreenWidth(), GetScreenHeight(), player.getPosition());
     changeState(GameState::Playing);
 }
 
@@ -95,6 +101,9 @@ void Game::update(float deltaTime)
                 break;
             }
             elapsedTime += deltaTime;
+            player.update(input.movement, deltaTime, room);
+            camera = room.getCamera(GetScreenWidth(), GetScreenHeight(), player.getPosition());
+            player.aimAt(GetScreenToWorld2D(input.mouse, camera));
             break;
         case GameState::Paused:
         {
@@ -144,13 +153,18 @@ void Game::drawOptions(const char* const* options, int count) const
 
 void Game::drawWorld() const
 {
-    DrawRectangle(80, 110, Config::windowWidth - 160, Config::windowHeight - 200,
-                  Config::panel);
-    drawCentered("Fortaleza do guardiao", 145, 28, Config::text);
-    drawCentered("A exploracao e o combate serao adicionados nas proximas etapas.",
-                 310, 20, Config::muted);
-    DrawText(TextFormat("Tempo de partida: %.1f s", elapsedTime), 24, 24, 22, Config::text);
-    DrawText("Esc: pausar", 24, Config::windowHeight - 40, 20, Config::muted);
+    BeginScissorMode(0, static_cast<int>(Config::hudHeight), GetScreenWidth(),
+                     static_cast<int>(GetScreenHeight() - Config::hudHeight - Config::footerHeight));
+    BeginMode2D(camera);
+    room.draw();
+    player.draw();
+    EndMode2D();
+    EndScissorMode();
+    DrawText(TextFormat("Vida: %i / %i", player.getHealth(), player.getMaxHealth()),
+             24, 24, 22, Config::accent);
+    DrawText(TextFormat("Tempo: %.1f s", elapsedTime), 700, 24, 22, Config::text);
+    DrawText("WASD: mover | Mouse: mirar | Esc: pausar", 24,
+             Config::windowHeight - 36, 20, Config::muted);
 }
 
 void Game::drawInstructions() const
@@ -159,9 +173,9 @@ void Game::drawInstructions() const
     drawCentered("Entre na fortaleza e derrote seu guardiao corrompido.", 140, 22, Config::text);
     drawCentered("Menu: setas ou W/S e Enter; ou clique nas opcoes.", 200, 20, Config::text);
     drawCentered("Esc: pausar e retomar a partida.", 240, 20, Config::text);
-    drawCentered("Controles previstos para as proximas etapas:", 310, 20, Config::muted);
-    drawCentered("WASD: mover | Mouse: mirar | Botao esquerdo: atacar", 355, 20, Config::text);
-    drawCentered("Q: trocar arma | Espaco: dash | E: interagir", 395, 20, Config::text);
+    drawCentered("WASD: mover | Mouse: mirar", 295, 20, Config::text);
+    drawCentered("Nas proximas etapas:", 355, 20, Config::muted);
+    drawCentered("Clique: atacar | Q: arma | Espaco: dash | E: interagir", 395, 20, Config::text);
     const Rectangle back = optionBounds(4);
     DrawRectangleRec(back, Config::panel);
     DrawRectangleLinesEx(back, 2, Config::accent);

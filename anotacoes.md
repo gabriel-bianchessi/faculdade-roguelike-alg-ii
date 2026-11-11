@@ -35,6 +35,7 @@ A partida começa com espada e pistola, atravessa 12 salas manuais e termina ao 
 - Sala 1: início e NPC vigia; sala 8: área segura com curandeiro; sala 9: chave da passagem entre 7 e 12; salas 10 e 11: armas e recursos opcionais; sala 12: chefe.
 - Permitir retorno, preservando inimigos derrotados, itens coletados e alterações no cenário.
 - Criar salas de dimensões diferentes com paredes sólidas, caixas destrutíveis, portas, alavancas e armadilhas.
+- Câmera acompanha o jogador com zoom fixo de 1,2×, limitada às bordas da sala; não é necessário mostrar a sala inteira.
 - Revelar células próximas ao jogador e manter as regiões exploradas visíveis.
 - Sortear inimigos e itens entre posições válidas predefinidas no início da partida, sem bloquear entradas.
 
@@ -70,7 +71,7 @@ A partida começa com espada e pistola, atravessa 12 salas manuais e termina ao 
 
 Um explorador entra numa fortaleza para interromper a corrupção de seu guardião. O vigia apresenta o objetivo; o curandeiro explica a corrupção e oferece uma cura completa uma vez por partida.
 
-- Começar com 100 de vida, velocidade de 180 unidades por segundo e nível 1.
+- Começar com 100 de vida, velocidade de 240 unidades por segundo e nível 1.
 - Inimigos comuns concedem 20 XP; chefe concede 100 XP.
 - Cada nível exige `50 × nível atual` XP, consumidos na subida, preservando o excedente.
 - Cada nível concede um ponto de atributo, distribuído em uma tela que pausa a partida:

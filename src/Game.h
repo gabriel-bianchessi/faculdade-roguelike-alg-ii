@@ -1,6 +1,8 @@
 #pragma once
 
 #include "raylib.h"
+#include "Player.h"
+#include "Room.h"
 
 enum class GameState
 {
@@ -27,6 +29,7 @@ private:
         bool click = false;
         Vector2 mouse = {};
         Vector2 mouseDelta = {};
+        Vector2 movement = {};
     };
 
     GameState state = GameState::Menu;
@@ -35,6 +38,9 @@ private:
     bool showingInstructions = false;
     int selectedOption = 0;
     float elapsedTime = 0.0f;
+    Room room;
+    Player player;
+    Camera2D camera = {};
 
     void initialize();
     void readInput();

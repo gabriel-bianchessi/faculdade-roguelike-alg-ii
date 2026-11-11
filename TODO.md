@@ -16,16 +16,16 @@ Baseado no [plano ampliado](anotacoes.md). Executar na ordem das etapas e marcar
 
 ## 2. Jogador, sala inicial e colisões
 
-- [ ] Criar `Player` com posição, direção, vida atual, vida máxima e velocidade.
-- [ ] Inicializar jogador com 100 de vida e velocidade de 180 unidades por segundo.
-- [ ] Criar `Room` e uma sala de teste com chão, paredes e obstáculos.
-- [ ] Definir coordenadas do mundo e converter a posição do mouse para esse espaço ao mirar.
-- [ ] Implementar movimento WASD usando tempo entre quadros e normalização diagonal.
-- [ ] Implementar colisão com paredes e obstáculos, permitindo deslizar ao longo das paredes.
-- [ ] Desenhar jogador, cenário e indicador da direção da mira com formas geométricas.
-- [ ] Ajustar câmera ou escala de visualização para acomodar salas de tamanhos diferentes.
-- [ ] Verificar movimento nos quatro sentidos e diagonais, cantos e limites da sala.
-- [ ] Comparar movimento em diferentes taxas de quadros.
+- [x] Criar `Player` com posição, direção, vida atual, vida máxima e velocidade.
+- [x] Inicializar jogador com 100 de vida e velocidade de 240 unidades por segundo.
+- [x] Criar `Room` e uma sala de teste com chão, paredes e obstáculos.
+- [x] Definir coordenadas do mundo e converter a posição do mouse para esse espaço ao mirar.
+- [x] Implementar movimento WASD usando tempo entre quadros e normalização diagonal.
+- [x] Implementar colisão com paredes e obstáculos, permitindo deslizar ao longo das paredes.
+- [x] Desenhar jogador, cenário e indicador da direção da mira com formas geométricas.
+- [x] Ajustar câmera ou escala de visualização para acomodar salas de tamanhos diferentes.
+- [x] Verificar movimento nos quatro sentidos e diagonais, cantos e limites da sala.
+- [x] Comparar movimento em diferentes taxas de quadros.
 
 ## 3. Primeiro combate jogável
 

@@ -119,8 +119,12 @@ GENERATED :=
 OBJECTS :=
 
 GENERATED += $(OBJDIR)/Game.o
+GENERATED += $(OBJDIR)/Player.o
+GENERATED += $(OBJDIR)/Room.o
 GENERATED += $(OBJDIR)/main.o
 OBJECTS += $(OBJDIR)/Game.o
+OBJECTS += $(OBJDIR)/Player.o
+OBJECTS += $(OBJDIR)/Room.o
 OBJECTS += $(OBJDIR)/main.o
 
 # Rules
@@ -186,6 +190,12 @@ endif
 # #############################################
 
 $(OBJDIR)/Game.o: src/Game.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/Player.o: src/Player.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/Room.o: src/Room.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/main.o: src/main.cpp
