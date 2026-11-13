@@ -46,6 +46,8 @@ A partida começa com espada e pistola, atravessa 12 salas manuais e termina ao 
 - Normalizar movimento diagonal e controlar velocidades e temporizadores pelo tempo entre quadros.
 - Dash de 0,24 segundo, invulnerável na primeira metade, com recarga de 1 segundo e colisão com paredes.
 - Após sofrer dano, conceder 0,5 segundo de invulnerabilidade. Não somar esse tempo ao do dash.
+- Espada: alcance de 76 unidades, largura de 64 e golpe ativo por 0,12 segundo. Pistola: projéteis a 650 unidades por segundo, raio de 4 e duração máxima de 2 segundos.
+- Perseguidor inicial: 40 de vida, velocidade de 120 unidades por segundo e 10 de dano a cada 0,8 segundo. Dash: velocidade de 800 unidades por segundo.
 - Golpes atingem uma área à frente do personagem, uma vez por alvo em cada ataque. Projéteis desaparecem ao atingir parede ou alvo.
 - Carregar uma arma corpo a corpo e uma à distância. Substituir uma arma deixa a anterior no chão. Munição ilimitada, limitada pela cadência.
 

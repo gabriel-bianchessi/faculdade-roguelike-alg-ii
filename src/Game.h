@@ -3,6 +3,7 @@
 #include "raylib.h"
 #include "Player.h"
 #include "Room.h"
+#include "Combat.h"
 
 enum class GameState
 {
@@ -27,6 +28,9 @@ private:
         bool confirm = false;
         bool escape = false;
         bool click = false;
+        bool attack = false;
+        bool switchWeapon = false;
+        bool dash = false;
         Vector2 mouse = {};
         Vector2 mouseDelta = {};
         Vector2 movement = {};
@@ -40,6 +44,7 @@ private:
     float elapsedTime = 0.0f;
     Room room;
     Player player;
+    Combat combat;
     Camera2D camera = {};
 
     void initialize();

@@ -29,21 +29,21 @@ Baseado no [plano ampliado](anotacoes.md). Executar na ordem das etapas e marcar
 
 ## 3. Primeiro combate jogável
 
-- [ ] Criar structs de configuração de arma e projétil; identificar categorias e tipos com enums.
-- [ ] Equipar espada e pistola iniciais; implementar troca com `Q` e ataque com botão esquerdo.
-- [ ] Implementar alcance, área e intervalo da espada; registrar alvos atingidos para não repetir dano no mesmo golpe.
-- [ ] Implementar disparo da pistola com direção, velocidade, dano e intervalo entre tiros.
-- [ ] Remover projéteis ao atingir parede ou alvo e ao ultrapassar sua duração máxima.
-- [ ] Criar `Enemy` com posição, vida, velocidade e tipo; começar com o perseguidor.
-- [ ] Implementar dano e morte de inimigos, removendo entidades sem invalidar a iteração dos vetores.
-- [ ] Implementar ataque do perseguidor com intervalo entre danos, evitando dano a cada quadro.
-- [ ] Implementar dano ao jogador e invulnerabilidade de 0,5 segundo após receber dano.
-- [ ] Implementar dash de 0,24 segundo, recarga de 1 segundo e invulnerabilidade nos primeiros 0,12 segundo.
-- [ ] Impedir dash através de paredes, inclusive com deslocamentos maiores entre quadros.
-- [ ] Impedir soma indevida dos tempos de invulnerabilidade de dano e dash.
-- [ ] Implementar derrota quando a vida chegar a zero e opção de reinício.
-- [ ] Exibir vida, arma equipada e disponibilidade do dash.
-- [ ] Verificar dano único por golpe, cadência, colisão dos tiros, invulnerabilidade e reinício após morte.
+- [x] Criar structs de configuração de arma e projétil; identificar categorias e tipos com enums.
+- [x] Equipar espada e pistola iniciais; implementar troca com `Q` e ataque com botão esquerdo.
+- [x] Implementar alcance, área e intervalo da espada; registrar alvos atingidos para não repetir dano no mesmo golpe.
+- [x] Implementar disparo da pistola com direção, velocidade, dano e intervalo entre tiros.
+- [x] Remover projéteis ao atingir parede ou alvo e ao ultrapassar sua duração máxima.
+- [x] Criar `Enemy` com posição, vida, velocidade e tipo; começar com o perseguidor.
+- [x] Implementar dano e morte de inimigos, removendo entidades sem invalidar a iteração dos vetores.
+- [x] Implementar ataque do perseguidor com intervalo entre danos, evitando dano a cada quadro.
+- [x] Implementar dano ao jogador e invulnerabilidade de 0,5 segundo após receber dano.
+- [x] Implementar dash de 0,24 segundo, recarga de 1 segundo e invulnerabilidade nos primeiros 0,12 segundo.
+- [x] Impedir dash através de paredes, inclusive com deslocamentos maiores entre quadros.
+- [x] Impedir soma indevida dos tempos de invulnerabilidade de dano e dash.
+- [x] Implementar derrota quando a vida chegar a zero e opção de reinício.
+- [x] Exibir vida, arma equipada e disponibilidade do dash.
+- [x] Verificar dano único por golpe, cadência, colisão dos tiros, invulnerabilidade e reinício após morte.
 
 ## 4. Conexões, exploração e persistência
 

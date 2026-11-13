@@ -8,9 +8,13 @@ class Player
 {
 public:
     explicit Player(Vector2 startPosition = {});
-    void update(Vector2 movement, float deltaTime, const Room& room);
+    void update(Vector2 movement, float deltaTime, const Room& room, bool dash = false);
     void aimAt(Vector2 mouseWorld);
     void draw() const;
+    bool takeDamage(int damage);
+    bool isInvulnerable() const;
+    float getDashCooldown() const { return dashCooldown; }
+
 
     Vector2 getPosition() const { return position; }
     Vector2 getDirection() const { return direction; }
@@ -19,6 +23,10 @@ public:
     float getSpeed() const { return speed; }
 
 private:
+    float damageProtection = 0.0f;
+    float dashRemaining = 0.0f;
+    float dashCooldown = 0.0f;
+    Vector2 dashDirection = {};
     Vector2 position;
     Vector2 direction = {1.0f, 0.0f};
     int health = Config::initialHealth;

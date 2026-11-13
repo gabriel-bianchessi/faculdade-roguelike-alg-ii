@@ -17,6 +17,18 @@ namespace Config
     inline constexpr float roomHeight = 800.0f;
     inline constexpr float wallThickness = 32.0f;
     inline constexpr float cameraZoom = 1.2f;
+    inline constexpr float swordActiveDuration = 0.12f;
+    inline constexpr float projectileRadius = 4.0f;
+    inline constexpr float dashDuration = 0.24f;
+    inline constexpr float dashInvulnerability = 0.12f;
+    inline constexpr float dashCooldown = 1.0f;
+    inline constexpr float dashSpeed = 800.0f;
+    inline constexpr float damageInvulnerability = 0.5f;
+    inline constexpr int enemyHealth = 40;
+    inline constexpr float enemySpeed = 120.0f;
+    inline constexpr float enemyHalfSize = 16.0f;
+    inline constexpr int enemyDamage = 10;
+    inline constexpr float enemyAttackInterval = 0.8f;
     inline constexpr float hudHeight = 64.0f;
     inline constexpr float footerHeight = 48.0f;
 

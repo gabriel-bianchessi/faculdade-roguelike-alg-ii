@@ -2,6 +2,8 @@
 
 #include "Config.h"
 
+#include <algorithm>
+
 void Game::run()
 {
     initialize();
@@ -29,6 +31,9 @@ void Game::readInput()
     input.confirm = IsKeyPressed(KEY_ENTER);
     input.escape = IsKeyPressed(KEY_ESCAPE);
     input.click = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
+    input.attack = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
+    input.switchWeapon = IsKeyPressed(KEY_Q);
+    input.dash = IsKeyPressed(KEY_SPACE);
     input.mouse = GetMousePosition();
     input.mouseDelta = GetMouseDelta();
     input.movement = {
@@ -49,6 +54,8 @@ void Game::startNewGame()
     elapsedTime = 0.0f;
     room = Room();
     player = Player(room.getSpawn());
+    combat = Combat();
+    combat.getEnemies().emplace_back(Vector2{320, 300});
     camera = room.getCamera(GetScreenWidth(), GetScreenHeight(), player.getPosition());
     changeState(GameState::Playing);
 }
@@ -100,10 +107,26 @@ void Game::update(float deltaTime)
                 changeState(GameState::Paused);
                 break;
             }
-            elapsedTime += deltaTime;
-            player.update(input.movement, deltaTime, room);
-            camera = room.getCamera(GetScreenWidth(), GetScreenHeight(), player.getPosition());
-            player.aimAt(GetScreenToWorld2D(input.mouse, camera));
+            if (input.switchWeapon) combat.switchWeapon();
+            // Passos curtos preservam duracoes e colisoes em quadros lentos.
+            for (float remaining = deltaTime; remaining > 0;)
+            {
+                const float step = std::min(remaining, 1.0f / 240);
+                elapsedTime += step;
+                player.aimAt(GetScreenToWorld2D(input.mouse, camera));
+                player.update(input.movement, step, room, input.dash);
+                input.dash = false;
+                camera = room.getCamera(GetScreenWidth(), GetScreenHeight(), player.getPosition());
+                player.aimAt(GetScreenToWorld2D(input.mouse, camera));
+                combat.update(step, input.attack, player, room);
+                for (Enemy& enemy : combat.getEnemies()) enemy.update(step, room, player);
+                if (player.getHealth() <= 0)
+                {
+                    changeState(GameState::Defeat);
+                    break;
+                }
+                remaining -= step;
+            }
             break;
         case GameState::Paused:
         {
@@ -157,14 +180,19 @@ void Game::drawWorld() const
                      static_cast<int>(GetScreenHeight() - Config::hudHeight - Config::footerHeight));
     BeginMode2D(camera);
     room.draw();
+    combat.draw(player);
     player.draw();
     EndMode2D();
     EndScissorMode();
     DrawText(TextFormat("Vida: %i / %i", player.getHealth(), player.getMaxHealth()),
              24, 24, 22, Config::accent);
+    DrawText(combat.getWeapon().type == WeaponType::Sword ? "Arma: Espada" : "Arma: Pistola",
+             230, 24, 20, Config::text);
+    DrawText(player.getDashCooldown() <= 0 ? "Dash: pronto" : TextFormat("Dash: %.1f s", player.getDashCooldown()),
+             450, 24, 20, Config::text);
     DrawText(TextFormat("Tempo: %.1f s", elapsedTime), 700, 24, 22, Config::text);
-    DrawText("WASD: mover | Mouse: mirar | Esc: pausar", 24,
-             Config::windowHeight - 36, 20, Config::muted);
+    DrawText("WASD: mover | Clique: atacar | Q: arma | Espaco: dash | Esc: pausa", 24,
+             Config::windowHeight - 36, 18, Config::muted);
 }
 
 void Game::drawInstructions() const
@@ -174,8 +202,8 @@ void Game::drawInstructions() const
     drawCentered("Menu: setas ou W/S e Enter; ou clique nas opcoes.", 200, 20, Config::text);
     drawCentered("Esc: pausar e retomar a partida.", 240, 20, Config::text);
     drawCentered("WASD: mover | Mouse: mirar", 295, 20, Config::text);
-    drawCentered("Nas proximas etapas:", 355, 20, Config::muted);
-    drawCentered("Clique: atacar | Q: arma | Espaco: dash | E: interagir", 395, 20, Config::text);
+    drawCentered("Segure o botao esquerdo para atacar.", 355, 20, Config::muted);
+    drawCentered("Q: trocar arma | Espaco: dash | Futuro: E para interagir", 395, 20, Config::text);
     const Rectangle back = optionBounds(4);
     DrawRectangleRec(back, Config::panel);
     DrawRectangleLinesEx(back, 2, Config::accent);
