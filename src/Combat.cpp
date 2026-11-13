@@ -76,10 +76,10 @@ void Combat::attack(const Player& player)
     ++swingNumber;
 }
 
-void Combat::resolveSwing(const Room& room)
+void Combat::resolveSwing(Room& room)
 {
     // Cada inimigo registra o golpe recebido, inclusive durante os quadros da animacao.
-    for (Enemy& enemy : enemies)
+    for (Enemy& enemy : room.getEnemies())
     {
         if (!enemy.isAlive() || !swordHits(swingPosition, swingDirection, enemy.getBounds())) continue;
         bool blocked = false;
@@ -89,7 +89,7 @@ void Combat::resolveSwing(const Room& room)
     }
 }
 
-void Combat::update(float deltaTime, bool attacking, const Player& player, const Room& room)
+void Combat::update(float deltaTime, bool attacking, const Player& player, Room& room)
 {
     swordCooldown -= deltaTime;
     pistolCooldown -= deltaTime;
@@ -106,7 +106,7 @@ void Combat::update(float deltaTime, bool attacking, const Player& player, const
         Enemy* target = nullptr;
         for (const Rectangle& solid : room.getSolids())
             nearest = std::min(nearest, hitFraction(projectile.position, end, solid, Config::projectileRadius));
-        for (Enemy& enemy : enemies)
+        for (Enemy& enemy : room.getEnemies())
         {
             if (!enemy.isAlive()) continue;
             const float fraction = hitFraction(projectile.position, end, enemy.getBounds(), Config::projectileRadius);
@@ -125,12 +125,13 @@ void Combat::update(float deltaTime, bool attacking, const Player& player, const
         }
     }
     std::erase_if(projectiles, [](const Projectile& projectile) { return projectile.remaining <= 0; });
-    std::erase_if(enemies, [](const Enemy& enemy) { return !enemy.isAlive(); });
+    std::erase_if(room.getEnemies(), [](const Enemy& enemy) { return !enemy.isAlive(); });
 }
 
-void Combat::draw(const Player& player) const
+void Combat::draw(const Player& player, const Room& room) const
 {
-    for (const Enemy& enemy : enemies) enemy.draw();
+    for (const Enemy& enemy : room.getEnemies())
+        if (room.isVisible(enemy.getPosition())) enemy.draw();
     for (const Projectile& projectile : projectiles) DrawCircleV(projectile.position, Config::projectileRadius, GOLD);
     if (swingRemaining > 0)
     {
@@ -144,4 +145,10 @@ void Combat::draw(const Player& player) const
     }
     if (equipped == WeaponType::Pistol)
         DrawCircleV(Vector2Add(player.getPosition(), Vector2Scale(player.getDirection(), 22)), 5, GOLD);
+}
+
+void Combat::clearTransient()
+{
+    projectiles.clear();
+    swingRemaining = 0;
 }

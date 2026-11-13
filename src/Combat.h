@@ -37,11 +37,10 @@ class Combat
 {
 public:
     void switchWeapon();
-    void update(float deltaTime, bool attack, const Player& player, const Room& room);
-    void draw(const Player& player) const;
+    void update(float deltaTime, bool attack, const Player& player, Room& room);
+    void draw(const Player& player, const Room& room) const;
+    void clearTransient();
     const WeaponConfig& getWeapon() const { return equipped == WeaponType::Sword ? sword : pistol; }
-    std::vector<Enemy>& getEnemies() { return enemies; }
-    const std::vector<Enemy>& getEnemies() const { return enemies; }
     const std::vector<Projectile>& getProjectiles() const { return projectiles; }
 
 private:
@@ -52,8 +51,7 @@ private:
     unsigned int swingNumber = 0;
     Vector2 swingPosition = {};
     Vector2 swingDirection = {1, 0};
-    std::vector<Enemy> enemies;
     std::vector<Projectile> projectiles;
     void attack(const Player& player);
-    void resolveSwing(const Room& room);
+    void resolveSwing(Room& room);
 };

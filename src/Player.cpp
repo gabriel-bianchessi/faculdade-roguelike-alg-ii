@@ -41,6 +41,12 @@ bool Player::takeDamage(int damage)
     return true;
 }
 
+void Player::enterRoom(Vector2 arrival)
+{
+    position = arrival;
+    dashRemaining = 0;
+}
+
 void Player::aimAt(Vector2 mouseWorld)
 {
     const Vector2 aim = Vector2Subtract(mouseWorld, position);

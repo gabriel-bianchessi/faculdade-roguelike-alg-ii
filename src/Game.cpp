@@ -52,11 +52,10 @@ void Game::changeState(GameState nextState)
 void Game::startNewGame()
 {
     elapsedTime = 0.0f;
-    room = Room();
-    player = Player(room.getSpawn());
+    dungeon = Dungeon();
+    player = Player(dungeon.currentRoom().getSpawn());
     combat = Combat();
-    combat.getEnemies().emplace_back(Vector2{320, 300});
-    camera = room.getCamera(GetScreenWidth(), GetScreenHeight(), player.getPosition());
+    camera = dungeon.currentRoom().getCamera(GetScreenWidth(), GetScreenHeight(), player.getPosition());
     changeState(GameState::Playing);
 }
 
@@ -114,16 +113,21 @@ void Game::update(float deltaTime)
                 const float step = std::min(remaining, 1.0f / 240);
                 elapsedTime += step;
                 player.aimAt(GetScreenToWorld2D(input.mouse, camera));
-                player.update(input.movement, step, room, input.dash);
+                player.update(input.movement, step, dungeon.currentRoom(), input.dash);
                 input.dash = false;
-                camera = room.getCamera(GetScreenWidth(), GetScreenHeight(), player.getPosition());
+                camera = dungeon.currentRoom().getCamera(GetScreenWidth(), GetScreenHeight(), player.getPosition());
                 player.aimAt(GetScreenToWorld2D(input.mouse, camera));
-                combat.update(step, input.attack, player, room);
-                for (Enemy& enemy : combat.getEnemies()) enemy.update(step, room, player);
+                combat.update(step, input.attack, player, dungeon.currentRoom());
+                for (Enemy& enemy : dungeon.currentRoom().getEnemies()) enemy.update(step, dungeon.currentRoom(), player);
                 if (player.getHealth() <= 0)
                 {
                     changeState(GameState::Defeat);
                     break;
+                }
+                if (dungeon.update(step, player))
+                {
+                    combat.clearTransient();
+                    camera = dungeon.currentRoom().getCamera(GetScreenWidth(), GetScreenHeight(), player.getPosition());
                 }
                 remaining -= step;
             }
@@ -179,18 +183,24 @@ void Game::drawWorld() const
     BeginScissorMode(0, static_cast<int>(Config::hudHeight), GetScreenWidth(),
                      static_cast<int>(GetScreenHeight() - Config::hudHeight - Config::footerHeight));
     BeginMode2D(camera);
-    room.draw();
-    combat.draw(player);
+    dungeon.currentRoom().draw();
+    dungeon.drawDetails();
+    combat.draw(player, dungeon.currentRoom());
     player.draw();
+    dungeon.currentRoom().drawExploration();
     EndMode2D();
     EndScissorMode();
     DrawText(TextFormat("Vida: %i / %i", player.getHealth(), player.getMaxHealth()),
-             24, 24, 22, Config::accent);
+             24, 10, 22, Config::accent);
     DrawText(combat.getWeapon().type == WeaponType::Sword ? "Arma: Espada" : "Arma: Pistola",
-             230, 24, 20, Config::text);
+             230, 10, 20, Config::text);
     DrawText(player.getDashCooldown() <= 0 ? "Dash: pronto" : TextFormat("Dash: %.1f s", player.getDashCooldown()),
-             450, 24, 20, Config::text);
-    DrawText(TextFormat("Tempo: %.1f s", elapsedTime), 700, 24, 22, Config::text);
+             450, 10, 20, Config::text);
+    DrawText(TextFormat("Tempo: %.1f s", elapsedTime), 700, 10, 22, Config::text);
+    DrawText(TextFormat("Sala: %i | Descobertas: %i | Chave: %s", dungeon.currentRoom().getId(),
+             dungeon.getDiscoveredCount(), dungeon.hasKey() ? "sim" : "nao"), 24, 40, 18, Config::text);
+    if (dungeon.nearLockedDoor(player.getPosition()))
+        DrawText("Porta trancada: procure a chave na sala 9", 480, 40, 18, GOLD);
     DrawText("WASD: mover | Clique: atacar | Q: arma | Espaco: dash | Esc: pausa", 24,
              Config::windowHeight - 36, 18, Config::muted);
 }
@@ -202,8 +212,8 @@ void Game::drawInstructions() const
     drawCentered("Menu: setas ou W/S e Enter; ou clique nas opcoes.", 200, 20, Config::text);
     drawCentered("Esc: pausar e retomar a partida.", 240, 20, Config::text);
     drawCentered("WASD: mover | Mouse: mirar", 295, 20, Config::text);
-    drawCentered("Segure o botao esquerdo para atacar.", 355, 20, Config::muted);
-    drawCentered("Q: trocar arma | Espaco: dash | Futuro: E para interagir", 395, 20, Config::text);
+    drawCentered("Segure o clique para atacar. A chave da sala 9 abre a sala 12.", 355, 20, Config::muted);
+    drawCentered("Q: arma | Espaco: dash | Caminhe sobre portas para viajar", 395, 20, Config::text);
     const Rectangle back = optionBounds(4);
     DrawRectangleRec(back, Config::panel);
     DrawRectangleLinesEx(back, 2, Config::accent);

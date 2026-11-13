@@ -16,6 +16,9 @@ namespace Config
     inline constexpr float roomWidth = 1280.0f;
     inline constexpr float roomHeight = 800.0f;
     inline constexpr float wallThickness = 32.0f;
+    inline constexpr float cellSize = 32.0f;
+    inline constexpr float revealRadius = 240.0f;
+    inline constexpr float transitionCooldown = 0.3f;
     inline constexpr float cameraZoom = 1.2f;
     inline constexpr float swordActiveDuration = 0.12f;
     inline constexpr float projectileRadius = 4.0f;

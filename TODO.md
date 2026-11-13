@@ -47,17 +47,17 @@ Baseado no [plano ampliado](anotacoes.md). Executar na ordem das etapas e marcar
 
 ## 4. Conexões, exploração e persistência
 
-- [ ] Criar struct de conexão com identificadores das salas, porta e posição de chegada.
-- [ ] Montar primeiro duas salas conectadas e testar ida e volta.
-- [ ] Manter o estado de todas as salas durante a partida, sem recriar inimigos e itens a cada visita.
-- [ ] Posicionar o jogador em uma área livre ao entrar e impedir transições repetidas imediatamente.
-- [ ] Remover projéteis da sala ao sair, evitando disparos residuais no retorno.
-- [ ] Criar a grade de células usada pelo mapa e pela navegação.
-- [ ] Implementar máscara de escuridão, revelação próxima ao jogador e memória das células exploradas.
-- [ ] Registrar a primeira descoberta de cada sala para a pontuação.
-- [ ] Criar chave coletável e porta trancada entre as salas 7 e 12.
-- [ ] Exibir indicação de porta trancada e de posse da chave.
-- [ ] Verificar retorno às salas com inimigos mortos, itens removidos e exploração preservada.
+- [x] Criar struct de conexão com identificadores das salas, porta e posição de chegada.
+- [x] Montar primeiro duas salas conectadas e testar ida e volta.
+- [x] Manter o estado de todas as salas durante a partida, sem recriar inimigos e itens a cada visita.
+- [x] Posicionar o jogador em uma área livre ao entrar e impedir transições repetidas imediatamente.
+- [x] Remover projéteis da sala ao sair, evitando disparos residuais no retorno.
+- [x] Criar a grade de células usada pelo mapa e pela navegação.
+- [x] Implementar máscara de escuridão, revelação próxima ao jogador e memória das células exploradas.
+- [x] Registrar a primeira descoberta de cada sala para a pontuação.
+- [x] Criar chave coletável e porta trancada entre as salas 7 e 12.
+- [x] Exibir indicação de porta trancada e de posse da chave.
+- [x] Verificar retorno às salas com inimigos mortos, itens removidos e exploração preservada.
 
 ## 5. Itens e arsenal completo
 

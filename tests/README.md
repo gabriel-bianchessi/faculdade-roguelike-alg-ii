@@ -22,9 +22,22 @@ remocao de mortos, dash em diferentes FPS, invulnerabilidade e ataque do persegu
 Fluxo de pausa, derrota e reinicio (sem janela):
 
 ```sh
-g++ -std=c++20 -Wall -Wextra -Wshadow -fno-access-control -Isrc -isystem build/external/raylib-master/src tests/combat-flow.cpp src/Game.cpp src/Combat.cpp src/Enemy.cpp src/Player.cpp src/Room.cpp bin/Debug/libraylib.a -lX11 -lpthread -lm -ldl -lrt -o /tmp/rogue-like-combat-flow-test
+g++ -std=c++20 -Wall -Wextra -Wshadow -fno-access-control -Isrc -isystem build/external/raylib-master/src tests/combat-flow.cpp src/Game.cpp src/Dungeon.cpp src/Combat.cpp src/Enemy.cpp src/Player.cpp src/Room.cpp bin/Debug/libraylib.a -lX11 -lpthread -lm -ldl -lrt -o /tmp/rogue-like-combat-flow-test
 /tmp/rogue-like-combat-flow-test
 ```
 
 A flag `-fno-access-control` permite ao teste inspecionar os estados privados de
 `Game`, sem expor esses detalhes na interface usada pelo jogo.
+
+
+Conexoes, exploracao e persistencia:
+
+```sh
+g++ -std=c++20 -Wall -Wextra -Wshadow -Isrc -isystem build/external/raylib-master/src tests/exploration.cpp src/Dungeon.cpp src/Combat.cpp src/Enemy.cpp src/Player.cpp src/Room.cpp bin/Debug/libraylib.a -lX11 -lpthread -lm -ldl -lrt -o /tmp/rogue-like-exploration-test
+/tmp/rogue-like-exploration-test
+```
+
+Confere chegadas livres, caminhos entre portas na grade, ida e volta, inimigos
+mortos ou feridos preservados, memoria da exploracao, descoberta unica, chave,
+porta trancada e reinicio. O teste de fluxo tambem verifica a remocao dos tiros
+ao trocar de sala e a preservacao da arma equipada.

@@ -1,9 +1,14 @@
 #include "Room.h"
 
-#include <algorithm>
+#include "raymath.h"
 
-Room::Room(float width, float height)
-    : bounds{0, 0, width, height}, spawn{width * 0.12f, height * 0.2f}
+#include <algorithm>
+#include <cmath>
+
+Room::Room(float width, float height, int identifier)
+    : id(identifier), columns(static_cast<int>(std::ceil(width / Config::cellSize))),
+      rows(static_cast<int>(std::ceil(height / Config::cellSize))), cells(columns * rows),
+      bounds{0, 0, width, height}, spawn{width * 0.12f, height * 0.2f}
 {
     const float wall = Config::wallThickness;
     solids = {
@@ -15,6 +20,17 @@ Room::Room(float width, float height)
         {width * 0.55f, height * 0.65f, width * 0.23f, height * 0.07f},
         {width * 0.7f, height * 0.22f, width * 0.1f, height * 0.14f}
     };
+    for (int row = 0; row < rows; ++row)
+        for (int column = 0; column < columns; ++column)
+        {
+            const Vector2 center{(column + 0.5f) * Config::cellSize, (row + 0.5f) * Config::cellSize};
+            const float half = Config::enemyHalfSize;
+            const Rectangle area{center.x - half, center.y - half, half * 2, half * 2};
+            bool free = center.x + half <= width && center.y + half <= height;
+            for (const Rectangle& solid : solids)
+                if (CheckCollisionRecs(area, solid)) free = false;
+            cells[row * columns + column].walkable = free;
+        }
 }
 
 Vector2 Room::move(Vector2 position, Vector2 displacement, float halfSize) const
@@ -75,4 +91,58 @@ void Room::draw() const
         DrawRectangleRec(solids[i], i < 4 ? Config::wall : Config::obstacle);
         DrawRectangleLinesEx(solids[i], 2, Config::muted);
     }
+}
+
+bool Room::discover()
+{
+    if (discovered) return false;
+    discovered = true;
+    return true;
+}
+
+bool Room::isWalkable(int column, int row) const
+{
+    return column >= 0 && row >= 0 && column < columns && row < rows &&
+           cells[row * columns + column].walkable;
+}
+
+bool Room::isVisible(Vector2 position) const
+{
+    const int column = static_cast<int>(std::floor(position.x / Config::cellSize));
+    const int row = static_cast<int>(std::floor(position.y / Config::cellSize));
+    return column >= 0 && row >= 0 && column < columns && row < rows &&
+           cells[row * columns + column].visible;
+}
+
+void Room::reveal(Vector2 position)
+{
+    for (int row = 0; row < rows; ++row)
+        for (int column = 0; column < columns; ++column)
+        {
+            Cell& cell = cells[row * columns + column];
+            const Vector2 center{(column + 0.5f) * Config::cellSize, (row + 0.5f) * Config::cellSize};
+            cell.visible = Vector2DistanceSqr(center, position) <= Config::revealRadius * Config::revealRadius;
+            cell.explored = cell.explored || cell.visible;
+        }
+}
+
+bool Room::collectKey(Vector2 position)
+{
+    if (!keyPresent || Vector2Distance(position, keyPosition) > Config::playerHalfSize + 12) return false;
+    keyPresent = false;
+    return true;
+}
+
+void Room::drawExploration() const
+{
+    for (int row = 0; row < rows; ++row)
+        for (int column = 0; column < columns; ++column)
+        {
+            const Cell& cell = cells[row * columns + column];
+            if (cell.visible) continue;
+            const Rectangle area{column * Config::cellSize, row * Config::cellSize,
+                std::min(Config::cellSize, bounds.width - column * Config::cellSize),
+                std::min(Config::cellSize, bounds.height - row * Config::cellSize)};
+            DrawRectangleRec(area, cell.explored ? Color{0, 0, 0, 180} : BLACK);
+        }
 }

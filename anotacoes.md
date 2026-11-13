@@ -36,7 +36,8 @@ A partida começa com espada e pistola, atravessa 12 salas manuais e termina ao 
 - Permitir retorno, preservando inimigos derrotados, itens coletados e alterações no cenário.
 - Criar salas de dimensões diferentes com paredes sólidas, caixas destrutíveis, portas, alavancas e armadilhas.
 - Câmera acompanha o jogador com zoom fixo de 1,2×, limitada às bordas da sala; não é necessário mostrar a sala inteira.
-- Revelar células próximas ao jogador e manter as regiões exploradas visíveis.
+- Revelar células de 32 unidades num raio de 240 unidades do jogador e manter as regiões exploradas escurecidas. Inimigos fora da área visível ficam ocultos.
+- Caminhar sobre uma porta numerada troca de sala. As chegadas ficam fora do gatilho da porta, com intervalo mínimo de 0,3 segundo entre transições; o dash é interrompido ao entrar. A chave não é consumida ao atravessar a porta 7–12.
 - Sortear inimigos e itens entre posições válidas predefinidas no início da partida, sem bloquear entradas.
 
 ## Controles e combate

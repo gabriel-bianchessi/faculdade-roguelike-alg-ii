@@ -4,6 +4,7 @@
 #include "Player.h"
 #include "Room.h"
 #include "Combat.h"
+#include "Dungeon.h"
 
 enum class GameState
 {
@@ -42,7 +43,7 @@ private:
     bool showingInstructions = false;
     int selectedOption = 0;
     float elapsedTime = 0.0f;
-    Room room;
+    Dungeon dungeon;
     Player player;
     Combat combat;
     Camera2D camera = {};

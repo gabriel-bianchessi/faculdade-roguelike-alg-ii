@@ -10,6 +10,7 @@ public:
     explicit Player(Vector2 startPosition = {});
     void update(Vector2 movement, float deltaTime, const Room& room, bool dash = false);
     void aimAt(Vector2 mouseWorld);
+    void enterRoom(Vector2 arrival);
     void draw() const;
     bool takeDamage(int damage);
     bool isInvulnerable() const;

@@ -12,37 +12,38 @@ void melee()
     Room room;
     Player player({200, 300});
     Combat combat;
-    combat.getEnemies().emplace_back(Vector2{250, 300});
-    combat.getEnemies().emplace_back(Vector2{250, 325});
-    combat.getEnemies().emplace_back(Vector2{150, 300});
-    combat.getEnemies().emplace_back(Vector2{300, 300});
+    room.getEnemies().emplace_back(Vector2{250, 300});
+    room.getEnemies().emplace_back(Vector2{250, 325});
+    room.getEnemies().emplace_back(Vector2{150, 300});
+    room.getEnemies().emplace_back(Vector2{300, 300});
     combat.update(0, true, player, room);
-    assert(combat.getEnemies()[0].getHealth() == 20);
-    assert(combat.getEnemies()[1].getHealth() == 20);
-    assert(combat.getEnemies()[2].getHealth() == 40);
-    assert(combat.getEnemies()[3].getHealth() == 40);
+    assert(room.getEnemies()[0].getHealth() == 20);
+    assert(room.getEnemies()[1].getHealth() == 20);
+    assert(room.getEnemies()[2].getHealth() == 40);
+    assert(room.getEnemies()[3].getHealth() == 40);
     combat.update(0.1f, true, player, room);
-    assert(combat.getEnemies()[0].getHealth() == 20);
+    assert(room.getEnemies()[0].getHealth() == 20);
     combat.switchWeapon();
     combat.switchWeapon();
     combat.update(0.1f, true, player, room);
-    assert(combat.getEnemies()[0].getHealth() == 20); // Q nao reinicia a cadencia.
+    assert(room.getEnemies()[0].getHealth() == 20); // Q nao reinicia a cadencia.
     combat.update(0.2f, true, player, room);
-    assert(combat.getEnemies().size() == 2); // Remocao de mortes consecutivas.
+    assert(room.getEnemies().size() == 2); // Remocao de mortes consecutivas.
 
     Room narrow(640, 800);
     Player besideWall({185, 300});
     Combat blocked;
-    blocked.getEnemies().emplace_back(Vector2{260, 300});
+    narrow.getEnemies().emplace_back(Vector2{260, 300});
     blocked.update(0, true, besideWall, narrow);
-    assert(blocked.getEnemies()[0].getHealth() == 40);
+    assert(narrow.getEnemies()[0].getHealth() == 40);
 
     Player diagonal({200, 300});
     diagonal.aimAt({300, 400});
+    room.getEnemies().clear();
     Combat angled;
-    angled.getEnemies().emplace_back(Vector2{245, 345});
+    room.getEnemies().emplace_back(Vector2{245, 345});
     angled.update(0, true, diagonal, room);
-    assert(angled.getEnemies()[0].getHealth() == 20);
+    assert(room.getEnemies()[0].getHealth() == 20);
 }
 
 void projectiles()
@@ -51,25 +52,26 @@ void projectiles()
     Player player({200, 300});
     Combat combat;
     combat.switchWeapon();
-    combat.getEnemies().emplace_back(Vector2{260, 300});
-    combat.getEnemies().emplace_back(Vector2{320, 300});
+    room.getEnemies().emplace_back(Vector2{260, 300});
+    room.getEnemies().emplace_back(Vector2{320, 300});
     combat.update(0, true, player, room);
     combat.update(0.2f, false, player, room);
     assert(combat.getProjectiles().empty());
-    assert(combat.getEnemies()[0].getHealth() == 32);
-    assert(combat.getEnemies()[1].getHealth() == 40);
+    assert(room.getEnemies()[0].getHealth() == 32);
+    assert(room.getEnemies()[1].getHealth() == 40);
     combat.update(0, true, player, room);
     assert(combat.getProjectiles().empty());
     combat.update(0.1f, true, player, room);
-    assert(combat.getEnemies()[0].getHealth() == 24);
+    assert(room.getEnemies()[0].getHealth() == 24);
 
+    room.getEnemies().clear();
     Combat wall;
     wall.switchWeapon();
-    wall.getEnemies().emplace_back(Vector2{490, 300});
+    room.getEnemies().emplace_back(Vector2{490, 300});
     wall.update(0, true, player, room);
     wall.update(1, false, player, room); // Tiro passa a espessura inteira em um quadro.
     assert(wall.getProjectiles().empty());
-    assert(wall.getEnemies()[0].getHealth() == 40);
+    assert(room.getEnemies()[0].getHealth() == 40);
 
     Combat expired;
     Room large(5000, 5000);

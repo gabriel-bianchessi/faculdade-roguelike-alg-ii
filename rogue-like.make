@@ -119,12 +119,14 @@ GENERATED :=
 OBJECTS :=
 
 GENERATED += $(OBJDIR)/Combat.o
+GENERATED += $(OBJDIR)/Dungeon.o
 GENERATED += $(OBJDIR)/Enemy.o
 GENERATED += $(OBJDIR)/Game.o
 GENERATED += $(OBJDIR)/Player.o
 GENERATED += $(OBJDIR)/Room.o
 GENERATED += $(OBJDIR)/main.o
 OBJECTS += $(OBJDIR)/Combat.o
+OBJECTS += $(OBJDIR)/Dungeon.o
 OBJECTS += $(OBJDIR)/Enemy.o
 OBJECTS += $(OBJDIR)/Game.o
 OBJECTS += $(OBJDIR)/Player.o
@@ -194,6 +196,9 @@ endif
 # #############################################
 
 $(OBJDIR)/Combat.o: src/Combat.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/Dungeon.o: src/Dungeon.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/Enemy.o: src/Enemy.cpp
