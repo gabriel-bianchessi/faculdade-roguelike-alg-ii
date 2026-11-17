@@ -1,161 +1,106 @@
-# Raylib-Quickstart
-A simple cross platform template for setting up a project with the bleeding edge raylib code.
-Works with C or C++.
+# Rogue Like — A fortaleza do guardião
 
-# Basic Setup
-Download this repository to get started.
+Jogo de exploração e combate em tempo real, feito em C++20 com Raylib para o trabalho de Algoritmos e Programação II. O explorador precisa encontrar a chave e libertar o guardião corrompido da fortaleza. A morte encerra a partida; reiniciar restaura todo o mundo.
 
-You can download the zip file of the repository from the Green Code button on github. This is the simplest way to get the template to start from.
-Once you have downloaded the template, rename it to your project name.
+## Compilar e executar
 
-or
+Alvo validado: Linux x86_64, teclado e mouse, ambiente gráfico com OpenGL 3.3. São necessários GCC com C++20, Make e as bibliotecas de desenvolvimento de X11/OpenGL. Em Ubuntu/Debian, os pacotes são `build-essential`, `libgl1-mesa-dev`, `libx11-dev`, `libxcursor-dev`, `libxrandr-dev`, `libxinerama-dev` e `libxi-dev`.
 
-Clone the repository with git, from the url
-```
-https://github.com/raylib-extras/raylib-quickstart.git
-```
+Na primeira compilação, gere os arquivos do Make:
 
-If you are using a command line git client you can use the command below to download and rename the template in one step
-```
-git clone https://github.com/raylib-extras/raylib-quickstart.git [name-for-your-project-here]
+```sh
+cd build
+./premake5 gmake
+cd ..
+make -j2
+./bin/Debug/rogue-like
 ```
 
-# Naming projects
-* Replace the placeholder with your desired project name when running the git clone command above.
-* __Do not name your game project 'raylib', it will conflict with the raylib library.__
-* If you have used custom game name with __git clone__, there is no need to rename it again.
+Se os arquivos já foram gerados:
 
-
-## Supported Platforms
-Quickstart supports the main 3 desktop platforms:
-* Windows
-* Linux
-* MacOS
-
-# VSCode Users (all platforms)
-*Note* You must have a compiler toolchain installed in addition to vscode.
-
-1. Download the quickstart
-2. Rename the folder to your game name
-3. Open the folder in VSCode
-4. Run the build task ( CTRL+SHIFT+B or F5 )
-5. You are good to go
-
-# Windows Users
-There are two compiler toolchains available for windows, MinGW-W64 (a free compiler using GCC), and Microsoft Visual Studio
-## Using MinGW-W64
-* Rename the folder to your game name
-* Double click the `build-MinGW-W64.bat` file
-* CD into the folder in your terminal
-  * if you are using the W64devkit and have not added it to your system path environment variable, you must use the W64devkit.exe terminal, not CMD.exe
-  * If you want to use cmd.exe or any other terminal, please make sure that gcc/mingw-W64 is in your path environment variable.
-* run `make`
-* You are good to go
-
-### Note on MinGW-64 versions
-Make sure you have a modern version of MinGW-W64 (not mingw).
-The best place to get it is from the W64devkit from
-https://github.com/skeeto/w64devkit/releases
-
-or the version installed with the raylib installer
-
-#### If you have installed raylib from the installer
-Make sure you have added the path
-
-`C:\raylib\w64devkit\bin`
-
-To your path environment variable so that the compiler that came with raylib can be found.
-
-DO NOT INSTALL ANOTHER MinGW-W64 from another source such as msys2, you don't need it.
-
-## Microsoft Visual Studio 2026
-* Rename the folder to your game name
-* Run `build-VisualStudio2026.bat`
-* double click the `.slnx` file that is generated
-* develop your game
-* you are good to go
-
-# Linux Users
-* Rename the folder to your game name
-* CD into the build folder
-* run `./premake5 gmake`
-* CD back to the root
-* run `make`
-* you are good to go
-
-# MacOS Users
-* Rename the folder to your game name
-* CD into the build folder
-* run `./premake5.osx gmake`
-* CD back to the root
-* run `make`
-* you are good to go
-
-# Output files
-The built code will be in the bin dir
-
-# Working directories and the resources folder
-The example uses a utility function from `path_utils.h` that will find the resources dir and set it as the current working directory. This is very useful when starting out. If you wish to manage your own working directory you can simply remove the call to the function and the header.
-
-# Changing to C++
-Simply rename `src/main.c` to `src/main.cpp` and re-run the steps above and do a clean build.
-
-# Using your own code
-Simply remove `src/main.c` and replace it with your code, and re-run the steps above and do a clean build.
-
-# Building for other OpenGL targets
-If you need to build for a different OpenGL version than the default (OpenGL 3.3) you can specify an OpenGL version in your premake command line. Just modify the bat file or add the following to your command line
-
-## For OpenGL 1.1
-`--graphics=opengl11`
-
-## For OpenGL 2.1
-`--graphics=opengl21`
-
-## For OpenGL 4.3
-`--graphics=opengl43`
-
-## For OpenGLES 2.0
-`--graphics=opengles2`
-
-## For OpenGLES 3.0
-`--graphics=opengles3`
-
-## For Software Rendering
-`--graphics=software`
-
-*Note*
-Sofware rendering does not work with glfw, use Win32 or SDL platforms
-`--backend=win32`
-
-# Adding External Libraries 
-
-Quickstart is intentionally minimal — it only includes what is required to compile and run a basic raylib project.  
-If you want to use extra libraries, you can add them to the `build/premake5.lua` file yourself using the links function.
-
-You can find the documentation for the links function here https://premake.github.io/docs/links/
-
-### Example: adding the required libraries for tinyfiledialogs on Windows
-tinyfiledialogs requires extra Windows system libraries.
-The premake file uses filters to define options that are platform specific
-https://premake.github.io/docs/Filters/
-
-Using the windows filter adds these libraries only to the windows build.
-```
-filter "system:windows"
-    links {
-        "Comdlg32",
-        "User32",
-        "Ole32",
-        "Shell32"
-    }
+```sh
+make && ./bin/Debug/rogue-like
 ```
 
-### Cross-platform reminder
-If you add a library, make sure to add its required dependencies for all platforms you plan to support (Windows, Linux, MacOS).
-Different libraries will have different dependencies on different platforms.
+O Premake baixa a Raylib quando `build/external/raylib-master` não existe, exigindo internet nessa primeira configuração. O pacote de entrega inclui os fontes dessa dependência para compilação sem esse download. O projeto usa a versão de Raylib fornecida pelo template; o jogo não depende de imagens, fontes ou áudio externos. Ao adicionar arquivos C++, gere novamente os arquivos com Premake.
 
+## Controles
 
-# License
-Raylib-Quickstart by Jeffery Myers is marked with CC0 1.0. To view a copy of this license, visit https://creativecommons.org/publicdomain/zero/1.0/
+| Entrada | Ação |
+|---|---|
+| WASD | Mover, com diagonais normalizadas |
+| Mouse / botão esquerdo | Mirar / atacar continuamente |
+| Q | Alternar entre arma corpo a corpo e arma de tiros |
+| Espaço | Dash, invulnerável na primeira metade |
+| E | Conversar, acionar alavanca ou recolher a arma diferente mais próxima |
+| Tab | Abrir ou fechar a distribuição de atributos |
+| Esc | Pausar ou retomar; avançar diálogo; voltar na ajuda |
+| Setas ou W/S e Enter | Selecionar opções dos menus |
 
+No menu de instruções, Enter e setas alternam as três páginas: controles, itens/atributos e pontuação. Também é possível selecionar as opções com o mouse.
+
+## Exploração e combate
+
+O caminho principal é `1 → 2 → 3 → 4 → 5 → 6 → 7 → 12`. As ramificações são `2 → 8`, `3 → 9`, `5 → 10` e `6 → 11`. Caminhe sobre uma porta numerada para atravessar. Todas as passagens da sala ficam bloqueadas enquanto houver inimigos vivos; ficam vermelhas e reabrem ao eliminar o grupo atual. A chave da sala 9 abre o portão entre 7 e 12, nos dois sentidos e sem ser consumida.
+
+O vigia está na entrada segura da sala 1. O curandeiro da sala 8 recupera toda a vida uma vez e abre um atalho persistente até a sala 4. Caixas podem ser destruídas por ataques de jogador e inimigos; alavancas desligam os espinhos associados. Espinhos cinza descansam, amarelos avisam e vermelhos causam dano. Inimigos derrotados, itens, exploração e mecanismos permanecem alterados ao retornar.
+
+A câmera usa zoom de 1,0×. A visão acompanha a mira em um campo de 220° com alcance de 460 unidades; paredes e caixas projetam sombras. As áreas fora da iluminação ficam mais claras, preservando a memória da exploração. Inimigos continuam visíveis fora do campo de visão, escurecidos pela mesma sombra do cenário.
+
+Há perseguidores, atiradores e patrulheiros rápidos. Atiradores continuam se aproximando enquanto disparam, respeitando as colisões. Eles vagueiam fora do alcance de percepção e usam busca em largura na grade para contornar obstáculos. Posições de inimigos e recursos são sorteadas entre candidatos válidos no início de cada partida. As salas 2 e 3 têm duas ondas; as demais salas de combate comuns têm três. Os reforços chegam após eliminar o grupo atual, com aviso de 3 segundos e surgimento distante do jogador. A onda e seu temporizador persistem nas revisitas e param durante pausas. As salas 1 e 8 são seguras. O chefe da sala 12 alterna perseguição, investida anunciada e tiros em leque; abaixo da metade da vida seus intervalos diminuem.
+
+| Item/arma | Efeito |
+|---|---|
+| Kit verde | Recupera até 30; permanece se a vida estiver cheia |
+| Escudo azul | Absorve 30; recoleta renova, sem somar |
+| Bônus roxo | +25% de dano por 10 segundos; recoleta renova |
+| Espada inicial | 20 de dano, intervalo de 0,4 s |
+| Pistola inicial | 8 de dano, intervalo de 0,3 s |
+| Lança da sala 10 | 28 de dano, golpe longo/estreito, intervalo de 0,65 s |
+| Escopeta da sala 11 | 5 projéteis de 6 de dano, intervalo de 0,9 s |
+
+Itens comuns são coletados por contato. Armas exigem E: uma troca por acionamento, deixando a anterior no chão. Há um espaço para cada categoria; munição é ilimitada. Pausa, diálogos e distribuição de atributos suspendem os temporizadores e o combate.
+
+## Experiência e pontuação
+
+Começa-se no nível 1, com 60 de vida e velocidade de 240 unidades/s. Cada inimigo comum concede 20 XP e o chefe, 100. Subir exige `50 × nível atual`, preservando excedente, e concede um ponto:
+
+- Força: +10% do dano base por ponto, antes do bônus temporário.
+- Vitalidade: +20 de vida máxima e cura de 20.
+- Agilidade: +5% da velocidade base por ponto.
+
+A distribuição abre ao subir e pode ser acessada por Tab. Pontos podem ser guardados.
+
+```text
+máximo(0,
+  100 × inimigos derrotados + 50 × coletas efetivas + 200 × salas descobertas
+  + 1000 × vitória − piso(distância real / 100) − 2 × vida recuperada)
+```
+
+Distância inclui dash e exclui teleporte/pressão contra paredes. Cura considera apenas vida realmente recuperada por kits, curandeiro e Vitalidade. Descoberta e vitória contam uma vez. O HUD mostra os valores da partida, e vitória/derrota exibem o resultado final.
+
+## Verificação e organização
+
+```sh
+bash tests/run.sh
+# Em ambientes que permitem LeakSanitizer:
+bash tests/run.sh --sanitize
+# Sob depurador/ptrace, sem verificação de vazamentos:
+ASAN_OPTIONS=detect_leaks=0 bash tests/run.sh --sanitize
+```
+
+Os testes verificam regras isoladas, persistência, 100 sementes de surgimentos e uma partida completa por entradas simuladas, seguida de derrota e reinícios. Detalhes em [tests/README.md](tests/README.md). Critérios do enunciado e evidências estão em [docs/VALIDACAO.md](docs/VALIDACAO.md); roteiro e exercícios para a defesa em [docs/DEFESA.md](docs/DEFESA.md).
+
+`Game` coordena os estados; `Player` concentra atributos e estatísticas; `Room` mantém cenário, grade e entidades; `Dungeon` conecta as salas; `Combat` resolve golpes e tiros; `Enemy` diferencia comportamentos por enum. Configurações ficam em `src/Config.h` e `src/Weapon.h`. O plano e o andamento estão em [anotacoes.md](anotacoes.md) e [TODO.md](TODO.md).
+
+Para preparar um arquivo com fontes, testes, documentos e a dependência Raylib:
+
+```sh
+bash scripts/package.sh
+```
+
+O arquivo gerado fica em `entrega/rogue-like.tar.gz`. A publicação e a apresentação são feitas pelos integrantes; confira [docs/ENTREGA.md](docs/ENTREGA.md).
+
+O menu traz uma ilustração geométrica da entrada da fortaleza. As quatro armas têm desenhos próprios no chão e nas mãos do personagem, acompanhando a mira, com animação de golpe ou recuo/clarão ao disparar. Todos são desenhados pela Raylib, sem assets externos.
+
+O template de compilação é [raylib-quickstart](https://github.com/raylib-extras/raylib-quickstart), de Jeffery Myers, disponibilizado sob CC0. A licença da Raylib é incluída na dependência. Esta versão não inclui salvamento, multiplayer, geração procedural de salas nem áudio.

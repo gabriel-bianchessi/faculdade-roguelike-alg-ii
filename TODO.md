@@ -17,7 +17,7 @@ Baseado no [plano ampliado](anotacoes.md). Executar na ordem das etapas e marcar
 ## 2. Jogador, sala inicial e colisões
 
 - [x] Criar `Player` com posição, direção, vida atual, vida máxima e velocidade.
-- [x] Inicializar jogador com 100 de vida e velocidade de 240 unidades por segundo.
+- [x] Inicializar jogador com 60 de vida e velocidade de 240 unidades por segundo.
 - [x] Criar `Room` e uma sala de teste com chão, paredes e obstáculos.
 - [x] Definir coordenadas do mundo e converter a posição do mouse para esse espaço ao mirar.
 - [x] Implementar movimento WASD usando tempo entre quadros e normalização diagonal.
@@ -61,105 +61,105 @@ Baseado no [plano ampliado](anotacoes.md). Executar na ordem das etapas e marcar
 
 ## 5. Itens e arsenal completo
 
-- [ ] Criar struct `Item` com tipo, posição e dados necessários ao efeito.
-- [ ] Implementar coleta por contato para itens comuns e por `E` para armas.
-- [ ] Implementar kit que recupera até 30 de vida; mantê-lo no chão quando a vida estiver cheia.
-- [ ] Implementar escudo que absorve 30 de dano antes de descontar a vida.
-- [ ] Implementar bônus de 25% de dano por 10 segundos, suspendendo o temporizador durante pausas.
-- [ ] Impedir acúmulo de escudos e bônus; recoletas renovam o efeito correspondente.
-- [ ] Implementar lança com golpe longo e estreito conforme os valores do plano.
-- [ ] Implementar escopeta com cinco projéteis em leque conforme os valores do plano.
-- [ ] Limitar o inventário a uma arma de cada categoria e deixar a substituída no chão.
-- [ ] Impedir que uma única interação recolha imediatamente a arma recém-descartada.
-- [ ] Registrar cada coleta efetiva para a pontuação.
-- [ ] Verificar cura parcial, vida cheia, absorção de dano, expiração do bônus e substituição de armas.
+- [x] Criar struct `Item` com tipo, posição e dados necessários ao efeito.
+- [x] Implementar coleta por contato para itens comuns e por `E` para armas.
+- [x] Implementar kit que recupera até 30 de vida; mantê-lo no chão quando a vida estiver cheia.
+- [x] Implementar escudo que absorve 30 de dano antes de descontar a vida.
+- [x] Implementar bônus de 25% de dano por 10 segundos, suspendendo o temporizador durante pausas.
+- [x] Impedir acúmulo de escudos e bônus; recoletas renovam o efeito correspondente.
+- [x] Implementar lança com golpe longo e estreito conforme os valores do plano.
+- [x] Implementar escopeta com cinco projéteis em leque conforme os valores do plano.
+- [x] Limitar o inventário a uma arma de cada categoria e deixar a substituída no chão.
+- [x] Impedir que uma única interação recolha imediatamente a arma recém-descartada.
+- [x] Registrar cada coleta efetiva para a pontuação.
+- [x] Verificar cura parcial, vida cheia, absorção de dano, expiração do bônus e substituição de armas.
 
 ## 6. XP, atributos e pontuação
 
-- [ ] Criar struct de atributos e iniciar jogador no nível 1, sem XP e sem pontos disponíveis.
-- [ ] Conceder 20 XP por inimigo comum derrotado e 100 XP pelo chefe, uma única vez por morte.
-- [ ] Aplicar custo de subida de `50 × nível atual`, preservando excedente e permitindo múltiplas subidas.
-- [ ] Conceder um ponto por nível e criar tela de distribuição que pausa o mundo.
-- [ ] Aplicar Força: +10% do dano base por ponto.
-- [ ] Aplicar Vitalidade: +20 de vida máxima e recuperação de até 20 de vida por ponto.
-- [ ] Aplicar Agilidade: +5% da velocidade base por ponto.
-- [ ] Recalcular atributos a partir das bases, sem acumular o mesmo modificador a cada atualização.
-- [ ] Registrar inimigos derrotados, itens coletados, salas descobertas, distância real e vida efetivamente recuperada.
-- [ ] Incluir dash na distância e curas de kits, NPC e Vitalidade na recuperação registrada.
-- [ ] Implementar a fórmula de pontuação de `anotacoes.md`, com mínimo zero e bônus de vitória aplicado uma única vez.
-- [ ] Exibir vida, escudo, XP, nível, pontos pendentes, armas, chave e pontuação no HUD.
-- [ ] Conferir a fórmula com valores conhecidos e verificar múltiplas subidas e gastos de pontos.
+- [x] Criar struct de atributos e iniciar jogador no nível 1, sem XP e sem pontos disponíveis.
+- [x] Conceder 20 XP por inimigo comum derrotado e 100 XP pelo chefe, uma única vez por morte.
+- [x] Aplicar custo de subida de `50 × nível atual`, preservando excedente e permitindo múltiplas subidas.
+- [x] Conceder um ponto por nível e criar tela de distribuição que pausa o mundo.
+- [x] Aplicar Força: +10% do dano base por ponto.
+- [x] Aplicar Vitalidade: +20 de vida máxima e recuperação de até 20 de vida por ponto.
+- [x] Aplicar Agilidade: +5% da velocidade base por ponto.
+- [x] Recalcular atributos a partir das bases, sem acumular o mesmo modificador a cada atualização.
+- [x] Registrar inimigos derrotados, itens coletados, salas descobertas, distância real e vida efetivamente recuperada.
+- [x] Incluir dash na distância e curas de kits, NPC e Vitalidade na recuperação registrada.
+- [x] Implementar a fórmula de pontuação de `anotacoes.md`, com mínimo zero e bônus de vitória aplicado uma única vez.
+- [x] Exibir vida, escudo, XP, nível, pontos pendentes, armas, chave e pontuação no HUD.
+- [x] Conferir a fórmula com valores conhecidos e verificar múltiplas subidas e gastos de pontos.
 
 ## 7. Cenário interativo, NPCs e história
 
-- [ ] Implementar caixas com vida, bloqueio de movimento e destruição por ataques de jogador e inimigos.
-- [ ] Atualizar colisões e grade de navegação quando uma caixa for destruída ou uma passagem aberta.
-- [ ] Implementar espinhos com estados de aviso, ativação e descanso.
-- [ ] Aplicar dano de armadilha ao jogador e aos inimigos, com intervalo para evitar dano a cada quadro.
-- [ ] Implementar alavancas acionadas por `E` que desativam armadilhas associadas.
-- [ ] Criar interação por proximidade e indicação visual para NPCs e mecanismos.
-- [ ] Adicionar o vigia na sala 1 com diálogo de apresentação do objetivo.
-- [ ] Adicionar o curandeiro na sala 8 com explicação da corrupção e cura completa uma vez por partida.
-- [ ] Conectar o atalho aberto pelo diálogo às salas existentes e registrar sua abertura de forma persistente.
-- [ ] Exibir diálogos pausando o combate e impedir que a mesma tecla avance várias falas instantaneamente.
-- [ ] Verificar que caixas, alavancas, cura usada e atalho continuam alterados após sair e voltar.
+- [x] Implementar caixas com vida, bloqueio de movimento e destruição por ataques de jogador e inimigos.
+- [x] Atualizar colisões e grade de navegação quando uma caixa for destruída ou uma passagem aberta.
+- [x] Implementar espinhos com estados de aviso, ativação e descanso.
+- [x] Aplicar dano de armadilha ao jogador e aos inimigos, com intervalo para evitar dano a cada quadro.
+- [x] Implementar alavancas acionadas por `E` que desativam armadilhas associadas.
+- [x] Criar interação por proximidade e indicação visual para NPCs e mecanismos.
+- [x] Adicionar o vigia na sala 1 com diálogo de apresentação do objetivo.
+- [x] Adicionar o curandeiro na sala 8 com explicação da corrupção e cura completa uma vez por partida.
+- [x] Conectar o atalho aberto pelo diálogo às salas existentes e registrar sua abertura de forma persistente.
+- [x] Exibir diálogos pausando o combate e impedir que a mesma tecla avance várias falas instantaneamente.
+- [x] Verificar que caixas, alavancas, cura usada e atalho continuam alterados após sair e voltar.
 
 ## 8. Inimigos completos e surgimento aleatório
 
-- [ ] Implementar busca em largura sobre a grade transitável para contornar obstáculos.
-- [ ] Recalcular caminhos em intervalos, considerando mudanças nas passagens.
-- [ ] Implementar vaguear entre posições válidas fora do alcance de percepção.
-- [ ] Implementar perseguidor com aproximação e ataque corpo a corpo.
-- [ ] Implementar atirador com alcance de disparo e tiros bloqueados por paredes.
-- [ ] Implementar patrulheiro rápido com movimentação e ritmo de ataque próprios.
-- [ ] Manter colisões físicas de todos os inimigos com paredes e obstáculos.
-- [ ] Definir posições candidatas para inimigos e itens em cada sala.
-- [ ] Sortear ocupação somente no início da partida, rejeitando sobreposições e entradas bloqueadas.
-- [ ] Impedir surgimento de inimigos na sala segura.
-- [ ] Verificar caminhos sem saída, obstáculos destruídos e várias entidades ativas sem engasgos.
+- [x] Implementar busca em largura sobre a grade transitável para contornar obstáculos.
+- [x] Recalcular caminhos em intervalos, considerando mudanças nas passagens.
+- [x] Implementar vaguear entre posições válidas fora do alcance de percepção.
+- [x] Implementar perseguidor com aproximação e ataque corpo a corpo.
+- [x] Implementar atirador com alcance de disparo e tiros bloqueados por paredes.
+- [x] Implementar patrulheiro rápido com movimentação e ritmo de ataque próprios.
+- [x] Manter colisões físicas de todos os inimigos com paredes e obstáculos.
+- [x] Definir posições candidatas para inimigos e itens em cada sala.
+- [x] Sortear ocupação somente no início da partida, rejeitando sobreposições e entradas bloqueadas.
+- [x] Impedir surgimento de inimigos na sala segura.
+- [x] Verificar caminhos sem saída, obstáculos destruídos e várias entidades ativas sem engasgos.
 
 ## 9. Montagem das 12 salas
 
-- [ ] Montar o caminho principal `1 → 2 → 3 → 4 → 5 → 6 → 7 → 12`.
-- [ ] Montar as ramificações `2 → 8`, `3 → 9`, `5 → 10` e `6 → 11`.
-- [ ] Finalizar sala 1 com entrada segura e vigia.
-- [ ] Finalizar salas 2 e 3 com introdução gradual de inimigos e exploração.
-- [ ] Finalizar salas 4 e 5 com obstáculos, armadilhas e mecanismos.
-- [ ] Finalizar salas 6 e 7 com combinações mais difíceis e acesso trancado ao chefe.
-- [ ] Finalizar sala 8 como área segura com curandeiro.
-- [ ] Finalizar sala 9 com a chave obrigatória e caminho acessível antes da porta trancada.
-- [ ] Finalizar salas 10 e 11 com lança, escopeta e recursos opcionais.
-- [ ] Finalizar sala 12 com espaço para reconhecer e evitar os ataques do chefe.
-- [ ] Variar dimensões e disposição de obstáculos sem perder consistência visual.
-- [ ] Percorrer todas as conexões e confirmar que a masmorra pode ser concluída sem bloqueios de progressão.
+- [x] Montar o caminho principal `1 → 2 → 3 → 4 → 5 → 6 → 7 → 12`.
+- [x] Montar as ramificações `2 → 8`, `3 → 9`, `5 → 10` e `6 → 11`.
+- [x] Finalizar sala 1 com entrada segura e vigia.
+- [x] Finalizar salas 2 e 3 com introdução gradual de inimigos e exploração.
+- [x] Finalizar salas 4 e 5 com obstáculos, armadilhas e mecanismos.
+- [x] Finalizar salas 6 e 7 com combinações mais difíceis e acesso trancado ao chefe.
+- [x] Finalizar sala 8 como área segura com curandeiro.
+- [x] Finalizar sala 9 com a chave obrigatória e caminho acessível antes da porta trancada.
+- [x] Finalizar salas 10 e 11 com lança, escopeta e recursos opcionais.
+- [x] Finalizar sala 12 com espaço para reconhecer e evitar os ataques do chefe.
+- [x] Variar dimensões e disposição de obstáculos sem perder consistência visual.
+- [x] Percorrer todas as conexões e confirmar que a masmorra pode ser concluída sem bloqueios de progressão.
 
 ## 10. Chefe e encerramento da partida
 
-- [ ] Implementar chefe com vida, estados de ataque e colisões próprias.
-- [ ] Alternar perseguição, investida com aviso visual e disparos em leque.
-- [ ] Reduzir intervalos entre ataques abaixo de metade da vida.
-- [ ] Sinalizar perigos com tempo suficiente para reação e esquiva.
-- [ ] Ativar vitória somente ao derrotar o chefe na sala final.
-- [ ] Criar telas de vitória e derrota com pontuação final e opções de reiniciar ou voltar ao menu.
-- [ ] Reiniciar salas, inimigos, itens, atributos, exploração, NPCs, temporizadores e estatísticas.
-- [ ] Completar uma partida vitoriosa e uma derrota, reiniciando após cada uma.
+- [x] Implementar chefe com vida, estados de ataque e colisões próprias.
+- [x] Alternar perseguição, investida com aviso visual e disparos em leque.
+- [x] Reduzir intervalos entre ataques abaixo de metade da vida.
+- [x] Sinalizar perigos com tempo suficiente para reação e esquiva.
+- [x] Ativar vitória somente ao derrotar o chefe na sala final.
+- [x] Criar telas de vitória e derrota com pontuação final e opções de reiniciar ou voltar ao menu.
+- [x] Reiniciar salas, inimigos, itens, atributos, exploração, NPCs, temporizadores e estatísticas.
+- [x] Completar uma partida vitoriosa e uma derrota, reiniciando após cada uma.
 
 ## 11. Acabamento e entrega
 
-- [ ] Padronizar cores e silhuetas de jogador, inimigos, itens e perigos.
-- [ ] Adicionar efeitos visuais de ataque, dano, invulnerabilidade e coleta.
-- [ ] Garantir texto legível e HUD sem sobreposição com controles ou diálogos.
-- [ ] Completar menu de ajuda com controles, objetivo, itens, atributos e fórmula de pontuação.
-- [ ] Ajustar dano, vida, cadência, alcance, velocidade e distribuição de recursos após partidas completas.
-- [ ] Conferir ausência de piscadas, travamentos e deslocamentos incoerentes.
-- [ ] Revisar uso de classes, structs, funções pequenas, referências e ponteiros conforme os critérios do PDF.
-- [ ] Revisar remoções de vetores e referências ou ponteiros que possam ser invalidados.
-- [ ] Compilar com `make` e corrigir avisos relevantes do projeto.
-- [ ] Atualizar o README com requisitos, compilação, execução e controles.
-- [ ] Conferir individualmente todos os critérios de avaliação do PDF.
-- [ ] Ensaiar a defesa: cada integrante explica o fluxo, as estruturas e os sistemas implementados.
-- [ ] Praticar alterações individuais em atributos, armas, inimigos e regras de pontuação.
-- [ ] Preparar a entrega pelo GitHub ou material didático conforme o enunciado.
+- [x] Padronizar cores e silhuetas de jogador, inimigos, itens e perigos.
+- [x] Adicionar efeitos visuais de ataque, dano, invulnerabilidade e coleta.
+- [x] Garantir texto legível e HUD sem sobreposição com controles ou diálogos.
+- [x] Completar menu de ajuda com controles, objetivo, itens, atributos e fórmula de pontuação.
+- [x] Ajustar dano, vida, cadência, alcance, velocidade e distribuição de recursos após partidas completas.
+- [x] Conferir ausência de piscadas, travamentos e deslocamentos incoerentes.
+- [x] Revisar uso de classes, structs, funções pequenas, referências e ponteiros conforme os critérios do PDF.
+- [x] Revisar remoções de vetores e referências ou ponteiros que possam ser invalidados.
+- [x] Compilar com `make` e corrigir avisos relevantes do projeto.
+- [x] Atualizar o README com requisitos, compilação, execução e controles.
+- [x] Conferir individualmente todos os critérios de avaliação do PDF.
+- [x] Preparar a entrega pelo GitHub ou material didático conforme o enunciado.
+
+Os roteiros para as duas tarefas humanas restantes estão em [docs/DEFESA.md](docs/DEFESA.md). As evidências técnicas estão em [docs/VALIDACAO.md](docs/VALIDACAO.md), e a preparação do pacote/envio em [docs/ENTREGA.md](docs/ENTREGA.md). Marcar ensaio e prática somente após cada integrante realizá-los.
 
 ## Limites desta versão
 

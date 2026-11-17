@@ -12,6 +12,7 @@ enum class GameState
     Playing,
     Paused,
     Attributes,
+    Dialogue,
     Victory,
     Defeat
 };
@@ -32,8 +33,9 @@ private:
         bool attack = false;
         bool switchWeapon = false;
         bool dash = false;
+        bool interact = false;
+        bool attributes = false;
         Vector2 mouse = {};
-        Vector2 mouseDelta = {};
         Vector2 movement = {};
     };
 
@@ -43,6 +45,8 @@ private:
     bool showingInstructions = false;
     int selectedOption = 0;
     float elapsedTime = 0.0f;
+    int dialogueLine = 0;
+    int helpPage = 0;
     Dungeon dungeon;
     Player player;
     Combat combat;
@@ -56,9 +60,11 @@ private:
     void startNewGame();
     void changeState(GameState nextState);
     int readMenuChoice(int optionCount);
-    static Rectangle optionBounds(int index);
+    Rectangle optionBounds(int index) const;
     void drawOptions(const char* const* options, int count) const;
     static void drawCentered(const char* text, int y, int fontSize, Color color);
     void drawWorld() const;
     void drawInstructions() const;
+    void drawMainMenu() const;
+    const char* dialogueText() const;
 };

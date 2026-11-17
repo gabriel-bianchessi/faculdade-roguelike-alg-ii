@@ -42,7 +42,7 @@ int main()
     };
 
     Player initial(room.getSpawn());
-    assert(initial.getHealth() == 100 && initial.getMaxHealth() == 100);
+    assert(initial.getHealth() == 60 && initial.getMaxHealth() == 60);
     near(initial.getSpeed(), 240);
     near(initial.getPosition(), room.getSpawn());
     assertFree(room, initial.getPosition());
@@ -129,7 +129,7 @@ int main()
         Room resized(size.x, size.y);
         const Vector2 center = {size.x / 2, size.y / 2};
         const Camera2D camera = resized.getCamera(960, 640, center);
-        near(camera.zoom, 1.2f);
+        near(camera.zoom, 1.0f);
         near(camera.target, center);
         near(GetWorldToScreen2D(center, camera), camera.offset);
         const Vector2 worldPoint = {400, 300};

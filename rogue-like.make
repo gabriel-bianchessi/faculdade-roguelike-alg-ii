@@ -122,15 +122,19 @@ GENERATED += $(OBJDIR)/Combat.o
 GENERATED += $(OBJDIR)/Dungeon.o
 GENERATED += $(OBJDIR)/Enemy.o
 GENERATED += $(OBJDIR)/Game.o
+GENERATED += $(OBJDIR)/Item.o
 GENERATED += $(OBJDIR)/Player.o
 GENERATED += $(OBJDIR)/Room.o
+GENERATED += $(OBJDIR)/WeaponVisual.o
 GENERATED += $(OBJDIR)/main.o
 OBJECTS += $(OBJDIR)/Combat.o
 OBJECTS += $(OBJDIR)/Dungeon.o
 OBJECTS += $(OBJDIR)/Enemy.o
 OBJECTS += $(OBJDIR)/Game.o
+OBJECTS += $(OBJDIR)/Item.o
 OBJECTS += $(OBJDIR)/Player.o
 OBJECTS += $(OBJDIR)/Room.o
+OBJECTS += $(OBJDIR)/WeaponVisual.o
 OBJECTS += $(OBJDIR)/main.o
 
 # Rules
@@ -207,10 +211,16 @@ $(OBJDIR)/Enemy.o: src/Enemy.cpp
 $(OBJDIR)/Game.o: src/Game.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/Item.o: src/Item.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/Player.o: src/Player.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/Room.o: src/Room.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/WeaponVisual.o: src/WeaponVisual.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/main.o: src/main.cpp

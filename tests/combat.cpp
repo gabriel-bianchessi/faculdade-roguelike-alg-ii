@@ -101,7 +101,7 @@ void dashAndDamage()
     assert(!player.takeDamage(10));
     player.update({}, 0.011f, room);
     assert(player.takeDamage(10));
-    assert(player.getHealth() == 80);
+    assert(player.getHealth() == 40);
 
     Player dash({100, 100});
     dash.update({1, 0}, 0.01f, room, true);
@@ -143,19 +143,19 @@ void enemy()
     Player player({200, 300});
     Enemy chaser({230, 300});
     chaser.update(0, room, player);
-    assert(player.getHealth() == 90);
+    assert(player.getHealth() == 50);
     for (int i = 0; i < 79; ++i)
     {
         player.update({}, 0.01f, room);
         chaser.update(0.01f, room, player);
     }
-    assert(player.getHealth() == 90);
+    assert(player.getHealth() == 50);
     player.update({}, 0.02f, room);
     chaser.update(0.02f, room, player);
-    assert(player.getHealth() == 80);
+    assert(player.getHealth() == 40);
     chaser.takeDamage(100);
     chaser.update(10, room, player);
-    assert(player.getHealth() == 80);
+    assert(player.getHealth() == 40);
 
     Player acrossWall({500, 300});
     Enemy blocked({390, 300});

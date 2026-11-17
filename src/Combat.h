@@ -1,35 +1,18 @@
 #pragma once
 
 #include "Enemy.h"
+#include "Weapon.h"
 
 #include <vector>
 
 class Room;
 class Player;
 
-enum class WeaponCategory { Melee, Ranged };
-enum class WeaponType { Sword, Pistol };
-
-struct WeaponConfig
-{
-    WeaponType type;
-    WeaponCategory category;
-    int damage;
-    float interval;
-    float reach;
-    float width;
-    float projectileSpeed;
-    float projectileLifetime;
-};
-
-inline constexpr WeaponConfig sword{WeaponType::Sword, WeaponCategory::Melee, 20, 0.4f, 76, 64, 0, 0};
-inline constexpr WeaponConfig pistol{WeaponType::Pistol, WeaponCategory::Ranged, 8, 0.3f, 0, 0, 650, 2};
-
 struct Projectile
 {
     Vector2 position;
     Vector2 velocity;
-    int damage;
+    float damage;
     float remaining;
 };
 
@@ -37,16 +20,24 @@ class Combat
 {
 public:
     void switchWeapon();
-    void update(float deltaTime, bool attack, const Player& player, Room& room);
+    WeaponType replaceWeapon(WeaponType type);
+    WeaponType getMeleeWeapon() const { return meleeWeapon; }
+    WeaponType getRangedWeapon() const { return rangedWeapon; }
+    void update(float deltaTime, bool attack, Player& player, Room& room);
     void draw(const Player& player, const Room& room) const;
     void clearTransient();
-    const WeaponConfig& getWeapon() const { return equipped == WeaponType::Sword ? sword : pistol; }
+    const WeaponConfig& getWeapon() const { return weaponConfig(equipped); }
     const std::vector<Projectile>& getProjectiles() const { return projectiles; }
 
 private:
     WeaponType equipped = WeaponType::Sword;
-    float swordCooldown = 0;
-    float pistolCooldown = 0;
+    WeaponType meleeWeapon = WeaponType::Sword;
+    WeaponType rangedWeapon = WeaponType::Pistol;
+    WeaponType swingWeapon = WeaponType::Sword;
+    float swingDamage = 0;
+    float muzzleFlash = 0;
+    float meleeCooldown = 0;
+    float rangedCooldown = 0;
     float swingRemaining = 0;
     unsigned int swingNumber = 0;
     Vector2 swingPosition = {};

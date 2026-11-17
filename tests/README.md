@@ -1,43 +1,40 @@
-Verificacao do movimento e das colisoes (apos `make`), a partir da raiz:
+# Validação
+
+Na raiz do projeto:
 
 ```sh
-g++ -std=c++20 -Wall -Wextra -Wshadow -Isrc -isystem build/external/raylib-master/src tests/movement.cpp src/Player.cpp src/Room.cpp bin/Debug/libraylib.a -lX11 -lpthread -lm -ldl -lrt -o /tmp/rogue-like-movement-test
-/tmp/rogue-like-movement-test
+bash tests/run.sh
 ```
 
-Os testes nao abrem janela. Comparam movimento a 15, 30, 60, 144 e 240 FPS,
-colisoes com paredes e obstaculos, deslizamento, cantos, mira e ajuste da camera.
+O script compila o jogo, compila os testes com C++20 e `-Wall -Wextra -Wshadow` e executa todos sem janela. Objetos e executáveis temporários são removidos ao terminar. A flag `-fno-access-control` permite aos testes de fluxo inspecionar `Game` sem ampliar a interface pública do jogo.
 
+| Arquivo | Cobertura |
+|---|---|
+| movement.cpp | Movimento cardinal/diagonal em 15, 30, 60, 144 e 240 FPS; cantos, colisão varrida, deslizamento, mira e câmera |
+| combat.cpp | Dano único por golpe, área, cadência, tiros, paredes, invulnerabilidade, dash e perseguidor |
+| combat-flow.cpp | Seleção por teclado preservada ao passar o mouse, seleção/confirmação por clique em todos os menus, pausa, temporizadores congelados, morte, reinício, tiros ao trocar de sala, movimento contínuo após o atalho 8–4 e interação única por quadro |
+| exploration.cpp | Todas as conexões, chegadas livres, acessibilidade, fog, persistência, chave, porta trancada e bloqueio por inimigos vivos (retorno, ramificação, atalho e chefe) |
+| items.cpp | Cura efetiva, vida cheia, escudo, renovação/expiração, contagem, troca e dano fracionário das armas |
+| progression.cpp | XP excedente/múltiplos níveis, pontos, atributos derivados, cura, distância real, fórmula, pausa e reset |
+| interactions.cpp | Caixas e grade, ataques de ambos os lados, ciclos de espinhos, alavancas, diálogos, cura única e atalho |
+| navigation.cpp | BFS contornando parede, caminho sem saída/reaberto, atirador, patrulheiro, vaguear e 40 entidades |
+| dungeon-content.cpp | 100 sementes, posições válidas, ausência de sobreposição, salas seguras, conexões das 12 salas e reprodutibilidade |
+| boss.cpp | Aviso, investida, leque, fase acelerada, colisão, 100 XP, vitória única e reinício |
+| vision-waves.cpp | Visão direcional, oclusão por paredes/caixas, memória, zoom, ondas finitas, surgimento seguro, pausa e persistência |
+| full-run.cpp | Partida real simulada: movimento até portas, combates, 12 descobertas, chave, armas, NPC, atributos, chefe, vitória, derrota e reinícios |
 
-Verificacao do combate:
+`full-run.cpp` usa uma semente fixa para ser reproduzível. O controlador escolhe entradas de movimento, mira, ataque e menus; não teleporta, altera vida, concede dano nem adiciona recursos na partida vitoriosa. A derrota posterior usa um perseguidor de teste junto ao jogador parado para verificar o fluxo de morte.
+
+Para verificar acessos inválidos e comportamento indefinido:
 
 ```sh
-g++ -std=c++20 -Wall -Wextra -Wshadow -Isrc -isystem build/external/raylib-master/src tests/combat.cpp src/Combat.cpp src/Enemy.cpp src/Player.cpp src/Room.cpp bin/Debug/libraylib.a -lX11 -lpthread -lm -ldl -lrt -o /tmp/rogue-like-combat-test
-/tmp/rogue-like-combat-test
+bash tests/run.sh --sanitize
 ```
 
-Verifica area e dano unico da espada, cadencia, troca de armas, tiros bloqueados,
-remocao de mortos, dash em diferentes FPS, invulnerabilidade e ataque do perseguidor.
-
-Fluxo de pausa, derrota e reinicio (sem janela):
+Neste ambiente, LeakSanitizer é incompatível com o ptrace usado pelo executor. A verificação com AddressSanitizer e UndefinedBehaviorSanitizer passou com:
 
 ```sh
-g++ -std=c++20 -Wall -Wextra -Wshadow -fno-access-control -Isrc -isystem build/external/raylib-master/src tests/combat-flow.cpp src/Game.cpp src/Dungeon.cpp src/Combat.cpp src/Enemy.cpp src/Player.cpp src/Room.cpp bin/Debug/libraylib.a -lX11 -lpthread -lm -ldl -lrt -o /tmp/rogue-like-combat-flow-test
-/tmp/rogue-like-combat-flow-test
+ASAN_OPTIONS=detect_leaks=0 bash tests/run.sh --sanitize
 ```
 
-A flag `-fno-access-control` permite ao teste inspecionar os estados privados de
-`Game`, sem expor esses detalhes na interface usada pelo jogo.
-
-
-Conexoes, exploracao e persistencia:
-
-```sh
-g++ -std=c++20 -Wall -Wextra -Wshadow -Isrc -isystem build/external/raylib-master/src tests/exploration.cpp src/Dungeon.cpp src/Combat.cpp src/Enemy.cpp src/Player.cpp src/Room.cpp bin/Debug/libraylib.a -lX11 -lpthread -lm -ldl -lrt -o /tmp/rogue-like-exploration-test
-/tmp/rogue-like-exploration-test
-```
-
-Confere chegadas livres, caminhos entre portas na grade, ida e volta, inimigos
-mortos ou feridos preservados, memoria da exploracao, descoberta unica, chave,
-porta trancada e reinicio. O teste de fluxo tambem verifica a remocao dos tiros
-ao trocar de sala e a preservacao da arma equipada.
+Isso não verifica vazamentos. A inspeção de propriedade confirma que as entidades usam valores/`std::vector`, sem `new`/`delete` manuais. Testes lógicos não substituem inspeção visual: menu, três páginas da ajuda, HUD, atributos, diálogo, armadilhas, aviso do chefe e resultado também foram abertos e conferidos em janela de 960 × 640.

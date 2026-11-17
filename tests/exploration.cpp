@@ -21,6 +21,8 @@ Connection connectionTo(const Room& room, int id)
 
 bool travel(Dungeon& dungeon, Player& player, int id)
 {
+    // Este teste isola exploracao; encerra o combate da sala antes de sair.
+    for (Enemy& enemy : dungeon.currentRoom().getEnemies()) enemy.takeDamage(10000);
     player.enterRoom(dungeon.currentRoom().getSpawn());
     dungeon.update(0.31f, player); // Sai do gatilho anterior e aguarda a recarga.
     const Connection connection = connectionTo(dungeon.currentRoom(), id);
@@ -70,13 +72,35 @@ void accessible(const Room& room, Vector2 start, Vector2 end)
 
 int main()
 {
+    // Todas as passagens, inclusive retorno, ramificacao, atalho e portao do chefe,
+    // ficam bloqueadas por inimigos vivos e reabrem mesmo com mortos na colecao.
+    for (int source : {3, 4, 7})
+        for (int doorIndex = 0; doorIndex < (source == 7 ? 2 : 3); ++doorIndex)
+        {
+            Dungeon locked(42);
+            Player visitor(locked.currentRoom().getSpawn());
+            locked.currentIndex = 7;
+            locked.finishDialogue(visitor);
+            locked.currentIndex = source-1;
+            locked.keyCollected = true;
+            Room& room = locked.currentRoom();
+            const Connection door = room.getConnections().at(doorIndex);
+            visitor.enterRoom(center(door.door));
+            assert(room.hasLivingEnemies());
+            assert(!locked.update(1, visitor));
+            assert(locked.currentRoom().getId() == source);
+            for (Enemy& enemy : room.getEnemies()) enemy.takeDamage(10000);
+            assert(!room.hasLivingEnemies());
+            assert(locked.update(0.01f, visitor));
+            assert(locked.currentRoom().getId() == door.to);
+        }
     Dungeon dungeon;
     Player player(dungeon.currentRoom().getSpawn());
     assert(dungeon.getDiscoveredCount() == 1);
     assert(!dungeon.hasKey());
     assert(dungeon.findRoom(999) == nullptr);
     // Todas as chegadas e portas sao livres e acessiveis pela grade de navegacao.
-    for (int id : {1, 2, 3, 4, 5, 6, 7, 9, 12})
+    for (int id : {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12})
     {
         Room& room = *dungeon.findRoom(id);
         freePosition(room, room.getSpawn());
@@ -95,10 +119,15 @@ int main()
     accessible(*dungeon.findRoom(9), dungeon.findRoom(9)->getSpawn(), dungeon.findRoom(9)->getKeyPosition());
 
     Room& first = dungeon.currentRoom();
+    first.getEnemies().emplace_back(Vector2{320, 300});
     first.getEnemies()[0].takeDamage(100);
     Combat combat;
     combat.update(0, false, player, first);
     assert(first.getEnemies().empty());
+    player.enterRoom(first.getItems()[0].position);
+    collectItems(first, player, combat, false);
+    assert(first.getItems().empty());
+    assert(player.getItemsCollected() == 1);
     const Vector2 remembered{800, 740};
     first.reveal(remembered);
     const int column = static_cast<int>(remembered.x / Config::cellSize);
@@ -114,9 +143,11 @@ int main()
     assert(travel(dungeon, player, 1));
     assert(first.getEnemies().empty());
     assert(first.getCell(column, row).explored);
+    assert(first.getItems().empty());
+    assert(player.getShield() == 30);
     assert(dungeon.getDiscoveredCount() == 2);
     assert(travel(dungeon, player, 2));
-    assert(dungeon.currentRoom().getEnemies()[0].getHealth() == 32);
+    assert(dungeon.currentRoom().getEnemies()[0].getHealth() == 0); // Derrota persistente.
     for (int id : {3, 4, 5, 6, 7}) assert(travel(dungeon, player, id));
     assert(dungeon.nearLockedDoor(center(connectionTo(dungeon.currentRoom(), 12).door)));
     assert(!travel(dungeon, player, 12));
@@ -135,6 +166,24 @@ int main()
     assert(!dungeon.nearLockedDoor(player.getPosition()));
     assert(travel(dungeon, player, 7));
     assert(dungeon.hasKey());
+    for (int id : {6, 5, 10}) assert(travel(dungeon, player, id));
+    player.enterRoom({250, 160});
+    collectItems(dungeon.currentRoom(), player, combat, true);
+    assert(combat.getMeleeWeapon() == WeaponType::Spear);
+    for (int id : {5, 10}) assert(travel(dungeon, player, id));
+    bool swordOnFloor = false;
+    for (const Item& item : dungeon.currentRoom().getItems())
+    {
+        if (item.type != ItemType::Weapon) continue;
+        assert(item.weapon != WeaponType::Spear);
+        if (item.weapon == WeaponType::Sword) swordOnFloor = true;
+    }
+    assert(swordOnFloor);
+    for (int id : {5, 6, 11}) assert(travel(dungeon, player, id));
+    player.enterRoom({250, 160});
+    collectItems(dungeon.currentRoom(), player, combat, true);
+    assert(combat.getRangedWeapon() == WeaponType::Shotgun);
+    assert(combat.getMeleeWeapon() == WeaponType::Spear);
     dungeon = Dungeon();
     assert(!dungeon.hasKey());
     assert(dungeon.getDiscoveredCount() == 1);
