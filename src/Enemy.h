@@ -9,6 +9,7 @@ class Player;
 enum class BossState { Hunt, ChargeWarning, Charge, FanWarning, Recovery };
 
 enum class EnemyType { Chaser, Shooter, Patrol, Boss };
+enum class EnemyAnimation { Idle, WalkDown, WalkLeft, WalkRight, WalkUp, Attack, Hurt, Death };
 
 class Enemy
 {
@@ -18,7 +19,11 @@ public:
     void update(float deltaTime, Room& room, Player& player);
     void takeDamage(float damage);
     void takeMeleeDamage(float damage, unsigned int swing);
-    void draw() const;
+    void draw(Texture2D texture = {}) const;
+    EnemyAnimation getAnimation() const { return animation; }
+    int getAnimationFrame() const;
+    void updateDeathAnimation(float deltaTime);
+    bool deathAnimationFinished() const { return !isAlive() && animationTime >= 0.64f; }
     bool isAlive() const { return health > 0; }
     Vector2 getPosition() const { return position; }
     Rectangle getBounds() const;
@@ -28,6 +33,14 @@ public:
     EnemyType getType() const { return type; }
 
 private:
+    EnemyAnimation animation = EnemyAnimation::Idle;
+    EnemyAnimation walkDirection = EnemyAnimation::WalkDown;
+    float animationTime = 0;
+    float attackAnimationRemaining = 0;
+    float hurtAnimationRemaining = 0;
+    bool moving = false;
+    Vector2 attackDirection = {1,0};
+    void updateAnimation(Vector2 displacement, float deltaTime);
     BossState bossState = BossState::Hunt;
     float stateTimer = Config::bossHuntDuration;
     int attackCycle = 0;

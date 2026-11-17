@@ -12,6 +12,7 @@ struct Attributes
 };
 
 enum class Attribute { Strength, Vitality, Agility };
+enum class PlayerAnimation { Idle, WalkDown, WalkLeft, WalkRight, WalkUp, Attack, Hurt, Death };
 
 class Player
 {
@@ -20,7 +21,12 @@ public:
     void update(Vector2 movement, float deltaTime, const Room& room, bool dash = false);
     void aimAt(Vector2 mouseWorld);
     void enterRoom(Vector2 arrival);
-    void draw() const;
+    void draw(Texture2D knightTexture = {}) const;
+    void playSwordAnimation();
+    void updateDeathAnimation(float deltaTime);
+    PlayerAnimation getAnimation() const { return animation; }
+    int getAnimationFrame() const;
+    bool usesSwordAttackSprite() const { return animation == PlayerAnimation::Attack; }
     bool takeDamage(int damage);
     int heal(int amount);
     void grantShield(int amount) { shield = amount; }
@@ -56,6 +62,13 @@ public:
     float getSpeed() const { return speed; }
 
 private:
+    PlayerAnimation animation = PlayerAnimation::Idle;
+    PlayerAnimation walkDirection = PlayerAnimation::WalkDown;
+    float animationTime = 0;
+    float attackAnimationRemaining = 0;
+    float hurtAnimationRemaining = 0;
+    bool moving = false;
+    void updateAnimation(Vector2 displacement, float deltaTime);
     Attributes attributes;
     int level = 1;
     int experience = 0;

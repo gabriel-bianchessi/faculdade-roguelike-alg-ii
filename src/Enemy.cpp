@@ -5,6 +5,7 @@
 #include "raymath.h"
 
 #include <algorithm>
+#include <cmath>
 
 Rectangle Enemy::getBounds() const
 {
@@ -14,8 +15,12 @@ Rectangle Enemy::getBounds() const
 
 void Enemy::takeDamage(float damage)
 {
+    if (!isAlive() || damage <= 0) return;
     health = std::max(0.0f, health - damage);
     hitFlash = 0.12f;
+    hurtAnimationRemaining = 0.24f;
+    animation = isAlive() ? EnemyAnimation::Hurt : EnemyAnimation::Death;
+    animationTime = 0;
 }
 
 void Enemy::takeMeleeDamage(float damage, unsigned int swing)
@@ -30,6 +35,9 @@ void Enemy::update(float deltaTime, Room& room, Player& player)
     if (!isAlive()) return;
     hitFlash = std::max(0.0f, hitFlash-deltaTime);
     if (type == EnemyType::Boss) { updateBoss(deltaTime, room, player); return; }
+    const Vector2 start = position;
+    attackAnimationRemaining = std::max(0.0f,attackAnimationRemaining-deltaTime);
+    hurtAnimationRemaining = std::max(0.0f,hurtAnimationRemaining-deltaTime);
     attackCooldown = std::max(0.0f, attackCooldown - deltaTime);
     const Vector2 difference = Vector2Subtract(player.getPosition(), position);
     const float reach = Config::enemyHalfSize + Config::playerHalfSize + 4;
@@ -80,11 +88,15 @@ void Enemy::update(float deltaTime, Room& room, Player& player)
         {
             room.getEnemyShots().push_back({position, Vector2Scale(Vector2Normalize(firingDirection), Config::hostileShotSpeed)});
             attackCooldown = Config::shooterInterval;
+            attackAnimationRemaining = 0.28f;
+            attackDirection = firingDirection;
         }
         else if (Vector2Distance(position, player.getPosition()) <= reach)
         {
             player.takeDamage(Config::enemyDamage);
             attackCooldown = type == EnemyType::Patrol ? Config::patrolInterval : Config::enemyAttackInterval;
+            attackAnimationRemaining = 0.28f;
+            attackDirection = firingDirection;
         }
     }
     if (attackCooldown <= 0)
@@ -97,14 +109,61 @@ void Enemy::update(float deltaTime, Room& room, Player& player)
             {
                 room.damageBox(i, Config::enemyDamage);
                 attackCooldown = Config::enemyAttackInterval;
+                attackAnimationRemaining = 0.28f;
+                attackDirection = Vector2Subtract(nearest,position);
                 break;
             }
         }
+    updateAnimation(Vector2Subtract(position,start),deltaTime);
 }
 
-void Enemy::draw() const
+void Enemy::updateAnimation(Vector2 displacement, float deltaTime)
 {
-    if (type == EnemyType::Boss)
+    moving = Vector2LengthSqr(displacement) > 0.000001f;
+    if (moving)
+        walkDirection = std::abs(displacement.x) > std::abs(displacement.y)
+            ? (displacement.x < 0 ? EnemyAnimation::WalkLeft : EnemyAnimation::WalkRight)
+            : (displacement.y < 0 ? EnemyAnimation::WalkUp : EnemyAnimation::WalkDown);
+    const EnemyAnimation next = hurtAnimationRemaining > 0 ? EnemyAnimation::Hurt
+        : attackAnimationRemaining > 0 ? EnemyAnimation::Attack
+        : moving || walkDirection != EnemyAnimation::WalkDown ? walkDirection : EnemyAnimation::Idle;
+    animationTime = next == animation ? animationTime+deltaTime : 0;
+    animation = next;
+}
+
+int Enemy::getAnimationFrame() const
+{
+    switch (animation)
+    {
+        case EnemyAnimation::Idle: return static_cast<int>(animationTime/0.18f)%4;
+        case EnemyAnimation::Attack: return std::min(3,static_cast<int>(animationTime/0.07f));
+        case EnemyAnimation::Hurt: return std::min(1,static_cast<int>(animationTime/0.09f));
+        case EnemyAnimation::Death: return std::min(3,static_cast<int>(animationTime/0.12f));
+        default: return moving ? static_cast<int>(animationTime/0.1f)%4 : 0;
+    }
+}
+
+void Enemy::updateDeathAnimation(float deltaTime)
+{
+    if (!isAlive()) animationTime += deltaTime;
+}
+
+void Enemy::draw(Texture2D texture) const
+{
+    const bool sprite = type != EnemyType::Boss && IsTextureValid(texture);
+    if (sprite)
+    {
+        const float scale = type == EnemyType::Patrol ? 0.26f : 0.24f;
+        Rectangle source{getAnimationFrame()*256.0f,static_cast<int>(animation)*256.0f,256,256};
+        const bool mirror = animation == EnemyAnimation::Attack ? attackDirection.x < 0
+            : (animation == EnemyAnimation::Hurt || animation == EnemyAnimation::Death) && walkDirection == EnemyAnimation::WalkLeft;
+        if (mirror) source.width = -source.width;
+        DrawEllipse(position.x,position.y+Config::enemyHalfSize,15,5,Fade(BLACK,0.35f));
+        DrawTexturePro(texture,source,{position.x-128*scale,position.y+Config::enemyHalfSize-236*scale,
+            256*scale,256*scale},{},0,WHITE);
+    }
+    else if (!isAlive()) return;
+    else if (type == EnemyType::Boss)
     {
         const bool warning = bossState == BossState::ChargeWarning || bossState == BossState::FanWarning;
         DrawPoly(position, 6, 34, 30, warning ? GOLD : DARKPURPLE);
@@ -116,9 +175,10 @@ void Enemy::draw() const
     else if (type == EnemyType::Shooter) DrawCircleV(position, Config::enemyHalfSize, ORANGE);
     else if (type == EnemyType::Patrol) DrawPoly(position, 3, 21, 0, VIOLET);
     else DrawRectangleRec(getBounds(), MAROON);
-    if (hitFlash > 0) DrawRectangleLinesEx(getBounds(), 3, WHITE);
+    if (!isAlive()) return; // Cadaveres nao exibem barra e nao participam do combate.
+    if (hitFlash > 0 && !sprite) DrawRectangleLinesEx(getBounds(), 3, WHITE);
     const int barWidth = type == EnemyType::Boss ? 72 : 32;
-    const int barY = static_cast<int>(position.y) - (type == EnemyType::Boss ? 46 : 24);
+    const int barY = static_cast<int>(position.y) - (type == EnemyType::Boss ? 46 : sprite ? 36 : 24);
     DrawRectangle(static_cast<int>(position.x)-barWidth/2, barY, barWidth, 4, DARKGRAY);
     DrawRectangle(static_cast<int>(position.x)-barWidth/2, barY,
         barWidth*health/(type == EnemyType::Boss ? Config::bossHealth : Config::enemyHealth), 4, RED);

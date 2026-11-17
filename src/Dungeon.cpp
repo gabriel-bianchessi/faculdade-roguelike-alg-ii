@@ -1,6 +1,7 @@
 #include "Dungeon.h"
 
 #include "Player.h"
+#include "Scenery.h"
 #include "raymath.h"
 
 #include <algorithm>
@@ -141,13 +142,18 @@ void Dungeon::drawDetails() const
     {
         const bool combatBlocked = currentRoom().hasLivingEnemies();
         const Color color = combatBlocked || (connection.locked && !keyCollected) ? RED : Config::accent;
-        DrawRectangleRec(connection.door, Config::panel);
+        const Rectangle door = connection.door;
+        const Rectangle bounds = currentRoom().getBounds();
+        const Scenery::Piece portal = door.width > door.height
+            ? (door.y < bounds.height/2 ? Scenery::PortalTop : Scenery::PortalBottom)
+            : (door.x < bounds.width/2 ? Scenery::PortalLeft : Scenery::PortalRight);
+        if (!Scenery::draw(portal,door)) DrawRectangleRec(door,Config::panel);
         DrawRectangleLinesEx(connection.door, 3, color);
+        DrawRectangle(connection.door.x+5,connection.door.y+9,28,26,Fade(Config::background,0.8f));
         DrawText(TextFormat("%i", connection.to), static_cast<int>(connection.door.x + 8),
                  static_cast<int>(connection.door.y + 12), 20, color);
         if (combatBlocked)
         {
-            const Rectangle door = connection.door;
             DrawLineEx({door.x+5,door.y+door.height-10},{door.x+door.width-5,door.y+door.height-10},4,color);
         }
     }

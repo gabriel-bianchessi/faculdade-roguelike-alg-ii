@@ -42,7 +42,7 @@ WeaponType Combat::replaceWeapon(WeaponType type)
     return previous;
 }
 
-void Combat::attack(const Player& player)
+void Combat::attack(Player& player)
 {
     const WeaponConfig& weapon = getWeapon();
     float& cooldown = weapon.category == WeaponCategory::Melee ? meleeCooldown : rangedCooldown;
@@ -62,6 +62,7 @@ void Combat::attack(const Player& player)
         return;
     }
     swingRemaining = Config::swordActiveDuration;
+    if (equipped == WeaponType::Sword) player.playSwordAnimation();
     swingWeapon = equipped;
     swingDamage = weapon.damage * player.getDamageMultiplier();
     swingPosition = player.getPosition();
@@ -143,17 +144,25 @@ void Combat::update(float deltaTime, bool attacking, Player& player, Room& room)
     std::erase_if(room.getEnemies(), [&player, &room](const Enemy& enemy) {
         if (enemy.isAlive()) return false;
         player.recordDefeat(enemy.getExperienceReward());
+        if (enemy.getType() != EnemyType::Boss) room.getDyingEnemies().push_back(enemy);
         if (enemy.getType() == EnemyType::Boss && room.getId() == 12) player.recordVictory();
         return true;
     });
 }
 
-void Combat::draw(const Player& player, const Room& room) const
+void Combat::draw(const Player& player, const Room& room, bool drawHeldWeapon,
+                  const std::array<Texture2D,3>& enemyTextures) const
 {
+    const auto drawEnemy = [&enemyTextures](const Enemy& enemy) {
+        const auto index = static_cast<std::size_t>(enemy.getType());
+        enemy.draw(index < enemyTextures.size() ? enemyTextures[index] : Texture2D{});
+    };
+    for (const Enemy& enemy : room.getDyingEnemies()) drawEnemy(enemy);
     for (const Enemy& enemy : room.getEnemies())
-        if (enemy.isAlive()) enemy.draw();
+        if (enemy.isAlive()) drawEnemy(enemy);
     for (const EnemyShot& shot : room.getEnemyShots()) DrawCircleV(shot.position, 4, RED);
     for (const Projectile& projectile : projectiles) DrawCircleV(projectile.position, Config::projectileRadius, GOLD);
+    if (!drawHeldWeapon) return;
     Vector2 direction = player.getDirection();
     const Vector2 side{-direction.y,direction.x};
     Vector2 grip = Vector2Add(player.getPosition(),Vector2Add(Vector2Scale(direction,12),Vector2Scale(side,7)));

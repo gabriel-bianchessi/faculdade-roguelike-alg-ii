@@ -51,6 +51,8 @@ private:
     Player player;
     Combat combat;
     Camera2D camera = {};
+    Texture2D knightTexture = {};
+    std::array<Texture2D,3> enemyTextures = {};
 
     void initialize();
     void readInput();

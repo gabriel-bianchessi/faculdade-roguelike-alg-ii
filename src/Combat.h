@@ -4,6 +4,7 @@
 #include "Weapon.h"
 
 #include <vector>
+#include <array>
 
 class Room;
 class Player;
@@ -24,7 +25,8 @@ public:
     WeaponType getMeleeWeapon() const { return meleeWeapon; }
     WeaponType getRangedWeapon() const { return rangedWeapon; }
     void update(float deltaTime, bool attack, Player& player, Room& room);
-    void draw(const Player& player, const Room& room) const;
+    void draw(const Player& player, const Room& room, bool drawHeldWeapon = true,
+              const std::array<Texture2D,3>& enemyTextures = {}) const;
     void clearTransient();
     const WeaponConfig& getWeapon() const { return weaponConfig(equipped); }
     const std::vector<Projectile>& getProjectiles() const { return projectiles; }
@@ -43,6 +45,6 @@ private:
     Vector2 swingPosition = {};
     Vector2 swingDirection = {1, 0};
     std::vector<Projectile> projectiles;
-    void attack(const Player& player);
+    void attack(Player& player);
     void resolveSwing(Room& room);
 };

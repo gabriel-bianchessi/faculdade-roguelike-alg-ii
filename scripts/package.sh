@@ -8,7 +8,10 @@ if [[ ! -d build/external/raylib-master/src ]]; then
     exit 1
 fi
 tar --transform='s,^,rogue-like/,' --exclude='*.o' --exclude='*.a' \
-    -czf "$output" src tests docs scripts README.md TODO.md anotacoes.md \
+    -czf "$output" src tests docs scripts resources sprites-knight.png README.md TODO.md anotacoes.md \
+    'Spritesheet de Cavaleiro Corrompido.png' 'Spritesheet do Besteiro Corrompido.png' \
+    'Spritesheet do Patrulheiro Sombrio.png' \
+    'Câmara de Pedra com Quatro Portais.png' \
     'T3 - Roguelike - 2026.pdf' build/premake5 build/premake5.lua build/ecc \
     build/external/raylib-master/src build/external/raylib-master/LICENSE
 printf 'Pacote criado: %s\n' "$output"

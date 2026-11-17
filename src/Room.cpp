@@ -1,6 +1,7 @@
 #include "Room.h"
 #include "Player.h"
 #include "Geometry.h"
+#include "Scenery.h"
 #include <queue>
 
 #include "raymath.h"
@@ -99,15 +100,25 @@ Camera2D Room::getCamera(int screenWidth, int screenHeight, Vector2 focus) const
 
 void Room::draw() const
 {
-    DrawRectangleRec(bounds, id == 8 ? Color{23,39,39,255} : Config::floor);
-    for (float x = Config::cellSize; x < bounds.width; x += Config::cellSize)
-        DrawLine(x, 0, x, bounds.height, Color{37,44,54,255});
-    for (float y = Config::cellSize; y < bounds.height; y += Config::cellSize)
-        DrawLine(0, y, bounds.width, y, Color{37,44,54,255});
-    for (std::size_t i = 0; i < solids.size(); ++i)
+    const Color tint = id == 8 ? Color{195,225,212,255} : WHITE;
+    if (!Scenery::tile(Scenery::Floor,bounds,128,128,tint))
     {
-        DrawRectangleRec(solids[i], i < 4 ? Config::wall : Config::obstacle);
-        DrawRectangleLinesEx(solids[i], 2, Config::muted);
+        DrawRectangleRec(bounds, id == 8 ? Color{23,39,39,255} : Config::floor);
+        for (float x = Config::cellSize; x < bounds.width; x += Config::cellSize)
+            DrawLine(x, 0, x, bounds.height, Color{37,44,54,255});
+        for (float y = Config::cellSize; y < bounds.height; y += Config::cellSize)
+            DrawLine(0, y, bounds.width, y, Color{37,44,54,255});
+    }
+    for (std::size_t i = 0; i < permanentSolids.size(); ++i)
+    {
+        const Rectangle solid = permanentSolids[i];
+        DrawRectangleRec({solid.x+4,solid.y+5,solid.width,solid.height},Color{0,0,0,75});
+        const bool textured = i == 2 || i == 3
+            ? Scenery::tile(Scenery::Pillar,solid,Config::wallThickness,96)
+            : Scenery::tile(Scenery::Wall,solid,96,Config::wallThickness);
+        if (!textured) DrawRectangleRec(solid,i < 4 ? Config::wall : Config::obstacle);
+        DrawRectangleLinesEx(solid,1,Color{24,27,35,255});
+        DrawLineEx({solid.x+1,solid.y+1},{solid.x+solid.width-1,solid.y+1},2,Color{155,158,172,180});
     }
 }
 
@@ -249,6 +260,7 @@ void Room::drawInteractions(Vector2 playerPosition) const
     for (const Box& box : boxes)
     {
         if (box.health <= 0) continue;
+        if (Scenery::draw(Scenery::Crate,box.bounds)) continue;
         DrawRectangleRec(box.bounds, BROWN);
         DrawRectangleLinesEx(box.bounds, 3, BEIGE);
         DrawLineEx({box.bounds.x, box.bounds.y},
@@ -416,6 +428,12 @@ void Room::updateWaves(float deltaTime, const Player& player)
     enemies = std::move(incoming);
     ++nextWave;
     waveRemaining = Config::waveDelay;
+}
+
+void Room::updateEnemyDeaths(float deltaTime)
+{
+    for (Enemy& enemy : dyingEnemies) enemy.updateDeathAnimation(deltaTime);
+    std::erase_if(dyingEnemies,[](const Enemy& enemy) { return enemy.deathAnimationFinished(); });
 }
 
 void Room::drawWaveWarning() const

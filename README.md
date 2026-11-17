@@ -101,6 +101,8 @@ bash scripts/package.sh
 
 O arquivo gerado fica em `entrega/rogue-like.tar.gz`. A publicação e a apresentação são feitas pelos integrantes; confira [docs/ENTREGA.md](docs/ENTREGA.md).
 
-O menu traz uma ilustração geométrica da entrada da fortaleza. As quatro armas têm desenhos próprios no chão e nas mãos do personagem, acompanhando a mira, com animação de golpe ou recuo/clarão ao disparar. Todos são desenhados pela Raylib, sem assets externos.
+O menu traz uma ilustração geométrica da entrada da fortaleza. As quatro armas têm desenhos próprios no chão e nas mãos do personagem, acompanhando a mira, com animação de golpe ou recuo/clarão ao disparar. As armas são desenhadas pela Raylib. O jogador usa o cavaleiro da imagem `sprites-knight.png`, com 30 quadros separados em `resources/player/frames/` e um atlas em `resources/player/knight.png`: parado, caminhada nas quatro direções, golpe de espada, dano e morte. A textura é carregada automaticamente ao iniciar o jogo, inclusive ao executar pelo caminho do binário. Detalhes e comando para reproduzir a separação estão em [resources/player/README.md](resources/player/README.md).
+
+Os três inimigos comuns também usam sprites animadas: cavaleiro corrompido (perseguidor), besteiro (atirador) e patrulheiro sombrio. São 90 quadros separados em `resources/enemies/`, com caminhada direcional, ataques, dano e morte. As animações de morte não bloqueiam portas nem duplicam XP. Consulte [resources/enemies/README.md](resources/enemies/README.md) para a organização e o extrator.
 
 O template de compilação é [raylib-quickstart](https://github.com/raylib-extras/raylib-quickstart), de Jeffery Myers, disponibilizado sob CC0. A licença da Raylib é incluída na dependência. Esta versão não inclui salvamento, multiplayer, geração procedural de salas nem áudio.

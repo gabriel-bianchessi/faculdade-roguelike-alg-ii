@@ -15,6 +15,8 @@ O script compila o jogo, compila os testes com C++20 e `-Wall -Wextra -Wshadow` 
 | combat-flow.cpp | Seleção por teclado preservada ao passar o mouse, seleção/confirmação por clique em todos os menus, pausa, temporizadores congelados, morte, reinício, tiros ao trocar de sala, movimento contínuo após o atalho 8–4 e interação única por quadro |
 | exploration.cpp | Todas as conexões, chegadas livres, acessibilidade, fog, persistência, chave, porta trancada e bloqueio por inimigos vivos (retorno, ramificação, atalho e chefe) |
 | items.cpp | Cura efetiva, vida cheia, escudo, renovação/expiração, contagem, troca e dano fracionário das armas |
+| enemy-animation.cpp | Três atlas e 90 PNGs, caminhada direcional, ataque móvel/cadência, dano, morte sem XP duplicado, portas, pausa, sala inativa e reinício |
+| player-animation.cpp | Atlas e 30 PNGs, caminhada nas quatro direções, repouso, espada, dano, pausa, morte e reinício |
 | progression.cpp | XP excedente/múltiplos níveis, pontos, atributos derivados, cura, distância real, fórmula, pausa e reset |
 | interactions.cpp | Caixas e grade, ataques de ambos os lados, ciclos de espinhos, alavancas, diálogos, cura única e atalho |
 | navigation.cpp | BFS contornando parede, caminho sem saída/reaberto, atirador, patrulheiro, vaguear e 40 entidades |

@@ -111,6 +111,9 @@ public:
     bool isVisible(Vector2 position) const;
     std::vector<Enemy>& getEnemies() { return enemies; }
     const std::vector<Enemy>& getEnemies() const { return enemies; }
+    std::vector<Enemy>& getDyingEnemies() { return dyingEnemies; }
+    const std::vector<Enemy>& getDyingEnemies() const { return dyingEnemies; }
+    void updateEnemyDeaths(float deltaTime);
     std::vector<Connection>& getConnections() { return connections; }
     const std::vector<Connection>& getConnections() const { return connections; }
     std::vector<Item>& getItems() { return items; }
@@ -142,6 +145,7 @@ private:
     int rows;
     std::vector<Cell> cells;
     std::vector<Enemy> enemies;
+    std::vector<Enemy> dyingEnemies;
     std::vector<Item> items;
     std::vector<Connection> connections;
     bool keyPresent = false;

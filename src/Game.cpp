@@ -1,8 +1,10 @@
 #include "Game.h"
 
 #include "Config.h"
+#include "Scenery.h"
 
 #include <algorithm>
+#include <string>
 #include "raymath.h"
 
 void Game::run()
@@ -21,6 +23,25 @@ void Game::initialize()
 {
     SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
     InitWindow(Config::windowWidth, Config::windowHeight, Config::windowTitle);
+    const std::string appDirectory = GetApplicationDirectory();
+    const auto loadSprite = [&appDirectory](const std::string& resource) {
+        const std::string paths[] = {resource,appDirectory+resource,appDirectory+"../"+resource,
+            appDirectory+"../../"+resource};
+        for (const std::string& path : paths)
+            if (FileExists(path.c_str()))
+            {
+                Texture2D texture = LoadTexture(path.c_str());
+                if (IsTextureValid(texture)) SetTextureFilter(texture,TEXTURE_FILTER_POINT);
+                return texture;
+            }
+        TraceLog(LOG_WARNING,"Sprite nao encontrado: %s",resource.c_str());
+        return Texture2D{};
+    };
+    knightTexture = loadSprite("resources/player/knight.png");
+    enemyTextures[0] = loadSprite("resources/enemies/chaser/atlas.png");
+    enemyTextures[1] = loadSprite("resources/enemies/shooter/atlas.png");
+    enemyTextures[2] = loadSprite("resources/enemies/patrol/atlas.png");
+    Scenery::load();
     SetExitKey(KEY_NULL);
     SetTargetFPS(Config::targetFps);
 }
@@ -141,6 +162,7 @@ void Game::update(float deltaTime)
                 collectItems(dungeon.currentRoom(), player, combat, input.interact);
                 input.interact = false;
                 const int previousLevel = player.getLevel();
+                dungeon.currentRoom().updateEnemyDeaths(step);
                 combat.update(step, input.attack, player, dungeon.currentRoom());
                 for (Enemy& enemy : dungeon.currentRoom().getEnemies()) enemy.update(step, dungeon.currentRoom(), player);
                 dungeon.currentRoom().updateHazards(step, player);
@@ -208,6 +230,7 @@ void Game::update(float deltaTime)
         case GameState::Victory:
         case GameState::Defeat:
         {
+            if (state == GameState::Defeat) player.updateDeathAnimation(deltaTime);
             const int choice = readMenuChoice(2);
             if (choice == 0) startNewGame();
             else if (choice == 1 || input.escape) changeState(GameState::Menu);
@@ -253,8 +276,9 @@ void Game::drawWorld() const
     dungeon.currentRoom().drawInteractions(player.getPosition());
     drawItems(dungeon.currentRoom(), player, combat);
     dungeon.currentRoom().drawWaveWarning();
-    combat.draw(player, dungeon.currentRoom());
-    player.draw();
+    combat.draw(player, dungeon.currentRoom(),player.getHealth() > 0 &&
+        !(IsTextureValid(knightTexture) && player.usesSwordAttackSprite()),enemyTextures);
+    player.draw(knightTexture);
     dungeon.currentRoom().drawExploration();
     if (dungeon.currentRoom().getId() == 12)
         for (const Enemy& enemy : dungeon.currentRoom().getEnemies())
@@ -385,6 +409,14 @@ void Game::draw() const
 
 void Game::shutdown()
 {
+    Scenery::unload();
+    if (IsTextureValid(knightTexture)) UnloadTexture(knightTexture);
+    knightTexture = {};
+    for (Texture2D& texture : enemyTextures)
+    {
+        if (IsTextureValid(texture)) UnloadTexture(texture);
+        texture = {};
+    }
     CloseWindow();
 }
 
