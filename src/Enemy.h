@@ -9,7 +9,8 @@ class Player;
 enum class BossState { Hunt, ChargeWarning, Charge, FanWarning, Recovery };
 
 enum class EnemyType { Chaser, Shooter, Patrol, Boss };
-enum class EnemyAnimation { Idle, WalkDown, WalkLeft, WalkRight, WalkUp, Attack, Hurt, Death };
+enum class EnemyAnimation { Idle, WalkDown, WalkLeft, WalkRight, WalkUp, Attack, Hurt, Death,
+                            ChargeWarning, Charge, FanWarning, FanAttack, Recovery };
 
 class Enemy
 {
@@ -22,6 +23,7 @@ public:
     void draw(Texture2D texture = {}) const;
     EnemyAnimation getAnimation() const { return animation; }
     int getAnimationFrame() const;
+    int getSpriteRow() const;
     void updateDeathAnimation(float deltaTime);
     bool deathAnimationFinished() const { return !isAlive() && animationTime >= 0.64f; }
     bool isAlive() const { return health > 0; }

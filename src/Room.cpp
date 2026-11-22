@@ -52,14 +52,16 @@ Vector2 Room::move(Vector2 position, Vector2 displacement, float halfSize) const
 {
     // Resolve cada eixo por varredura ate a face mais proxima, sem atravessar
     // obstaculos mesmo quando o deslocamento do quadro supera sua espessura.
+    // Compara o centro com as mesmas faces expandidas usadas para parar.
+    // Somar/subtrair halfSize de novo pode arredondar para dentro da parede.
     float nextX = position.x + displacement.x;
     for (const Rectangle& solid : solids)
     {
-        if (position.y + halfSize <= solid.y || position.y - halfSize >= solid.y + solid.height)
+        if (position.y <= solid.y - halfSize || position.y >= solid.y + solid.height + halfSize)
             continue;
-        if (displacement.x > 0 && position.x + halfSize <= solid.x)
+        if (displacement.x > 0 && position.x <= solid.x - halfSize)
             nextX = std::min(nextX, solid.x - halfSize);
-        else if (displacement.x < 0 && position.x - halfSize >= solid.x + solid.width)
+        else if (displacement.x < 0 && position.x >= solid.x + solid.width + halfSize)
             nextX = std::max(nextX, solid.x + solid.width + halfSize);
     }
     position.x = nextX;
@@ -67,11 +69,11 @@ Vector2 Room::move(Vector2 position, Vector2 displacement, float halfSize) const
     float nextY = position.y + displacement.y;
     for (const Rectangle& solid : solids)
     {
-        if (position.x + halfSize <= solid.x || position.x - halfSize >= solid.x + solid.width)
+        if (position.x <= solid.x - halfSize || position.x >= solid.x + solid.width + halfSize)
             continue;
-        if (displacement.y > 0 && position.y + halfSize <= solid.y)
+        if (displacement.y > 0 && position.y <= solid.y - halfSize)
             nextY = std::min(nextY, solid.y - halfSize);
-        else if (displacement.y < 0 && position.y - halfSize >= solid.y + solid.height)
+        else if (displacement.y < 0 && position.y >= solid.y + solid.height + halfSize)
             nextY = std::max(nextY, solid.y + solid.height + halfSize);
     }
     position.y = nextY;
@@ -80,11 +82,12 @@ Vector2 Room::move(Vector2 position, Vector2 displacement, float halfSize) const
 
 Camera2D Room::getCamera(int screenWidth, int screenHeight, Vector2 focus) const
 {
-    const float availableHeight = screenHeight - Config::hudHeight - Config::footerHeight;
+    const float scale = Config::windowScale(screenWidth,screenHeight);
+    const float availableHeight = screenHeight - (Config::hudHeight + Config::footerHeight)*scale;
     Camera2D camera = {};
-    camera.zoom = Config::cameraZoom;
+    camera.zoom = Config::cameraZoom*scale;
     camera.offset = {screenWidth / 2.0f,
-                     Config::hudHeight + availableHeight / 2};
+                     Config::hudHeight*scale + availableHeight / 2};
     const float halfWidth = screenWidth / (2 * camera.zoom);
     const float halfHeight = availableHeight / (2 * camera.zoom);
     // Acompanha o jogador sem mostrar o exterior da sala. Salas menores que a
@@ -255,7 +258,17 @@ void Room::updateHazards(float deltaTime, Player& player)
     }
 }
 
-void Room::drawInteractions(Vector2 playerPosition) const
+void Npc::update(float deltaTime, bool talking, int line)
+{
+    if (type == NpcType::None) return;
+    healingAnimationRemaining = std::max(0.0f,healingAnimationRemaining-deltaTime);
+    const int row = talking ? (type == NpcType::Watchman ? std::min(3,line+1) : 1)
+        : healingAnimationRemaining > 0 ? (healingAnimationRemaining > 0.64f ? 2 : 3) : 0;
+    animationTime = row == animationRow ? animationTime+deltaTime : 0;
+    animationRow = row;
+}
+
+void Room::drawInteractions(Vector2 playerPosition, Texture2D npcTexture) const
 {
     for (const Box& box : boxes)
     {
@@ -284,8 +297,15 @@ void Room::drawInteractions(Vector2 playerPosition) const
     }
     if (npc.type != NpcType::None)
     {
-        DrawPoly(npc.position, 6, 18, 30, npc.type == NpcType::Healer ? GREEN : SKYBLUE);
-        DrawText(npc.type == NpcType::Healer ? "Curandeiro" : "Vigia", npc.position.x-36, npc.position.y-40, 16, WHITE);
+        if (IsTextureValid(npcTexture))
+        {
+            constexpr float scale = 0.16f;
+            DrawEllipse(npc.position.x,npc.position.y+14,16,5,Fade(BLACK,0.35f));
+            DrawTexturePro(npcTexture,{npc.getAnimationFrame()*384.0f,npc.animationRow*384.0f,384,384},
+                {npc.position.x-192*scale,npc.position.y+14-360*scale,384*scale,384*scale},{},0,WHITE);
+        }
+        else DrawPoly(npc.position, 6, 18, 30, npc.type == NpcType::Healer ? GREEN : SKYBLUE);
+        DrawText(npc.type == NpcType::Healer ? "Curandeiro" : "Vigia", npc.position.x-36, npc.position.y-51, 16, WHITE);
         if (Vector2Distance(playerPosition, npc.position) <= Config::interactionRadius)
             DrawText("E: conversar", npc.position.x-42, npc.position.y+24, 14, GOLD);
     }
@@ -339,6 +359,11 @@ std::vector<Vector2> Room::findPath(Vector2 start, Vector2 target) const
     return path;
 }
 
+int EnemyShot::getSpriteRow() const
+{
+    return (static_cast<int>(std::lround(std::atan2(velocity.y,velocity.x)/(PI/4)))+10)%8;
+}
+
 void Room::updateEnemyShots(float deltaTime, Player& player)
 {
     const Vector2 pos = player.getPosition();
@@ -346,6 +371,7 @@ void Room::updateEnemyShots(float deltaTime, Player& player)
     const Rectangle target{pos.x-half, pos.y-half, half*2, half*2};
     for (EnemyShot& shot : enemyShots)
     {
+        shot.age += deltaTime;
         const Vector2 end = Vector2Add(shot.position, Vector2Scale(shot.velocity, std::min(deltaTime, shot.remaining)));
         float nearest = hitFraction(shot.position, end, target, 4);
         bool hitPlayer = nearest <= 1;

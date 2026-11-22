@@ -21,6 +21,9 @@ struct EnemyShot
     Vector2 velocity;
     int damage = 10;
     float remaining = Config::hostileShotLifetime;
+    float age = 0;
+    int getSpriteRow() const;
+    int getSpriteFrame() const { return static_cast<int>(age/0.08f)%4; }
 };
 
 struct Box
@@ -53,6 +56,11 @@ struct Npc
     Vector2 position = {};
     bool talked = false;
     bool healingUsed = false;
+    int animationRow = 0;
+    float animationTime = 0;
+    float healingAnimationRemaining = 0;
+    void update(float deltaTime, bool talking = false, int line = 0);
+    int getAnimationFrame() const { return static_cast<int>(animationTime/0.16f)%4; }
 };
 
 struct Cell
@@ -73,7 +81,7 @@ public:
     Camera2D getCamera(int screenWidth, int screenHeight, Vector2 focus) const;
     void draw() const;
     void drawExploration() const;
-    void drawInteractions(Vector2 playerPosition) const;
+    void drawInteractions(Vector2 playerPosition, Texture2D npcTexture = {}) const;
     void addBox(Rectangle area);
     void setObstacles(const std::vector<Rectangle>& obstacles);
     void damageBox(std::size_t index, float damage, unsigned int swing = 0);

@@ -14,7 +14,7 @@ O jogo usa filtro de vizinho mais próximo e escala de 24% para perseguidor/atir
 
 Morte é apenas uma animação de 0,64 s: o inimigo deixa de causar dano e bloquear portas imediatamente, concede XP uma única vez e permanece numa coleção visual separada até terminar a animação. Essa animação congela ao pausar, abrir atributos ou sair da sala. Todos os inimigos continuam desenhados sob a sombra fora do campo de visão.
 
-As texturas pertencem a `Game`, são carregadas uma única vez e liberadas antes do fechamento da janela. Os comportamentos, vida, velocidades e cadências dos inimigos permanecem os mesmos. O chefe continua usando seu desenho geométrico, pois não foi fornecida uma folha para ele.
+As texturas pertencem a `Game`, são carregadas uma única vez e liberadas antes do fechamento da janela. Os comportamentos, vida, velocidades e cadências dos inimigos permanecem os mesmos. O chefe usa uma quarta textura, com 48 quadros e animações próprias para investida e magia; veja [boss/README.md](boss/README.md).
 
 Os arquivos prontos acompanham a entrega. Para reproduzir a separação a partir das folhas originais, após compilar o projeto, execute na raiz:
 

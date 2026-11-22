@@ -37,10 +37,17 @@ A partida começa com espada e pistola, atravessa 12 salas manuais e termina ao 
 - Sala 1: início e NPC vigia; sala 8: área segura com curandeiro; sala 9: chave da passagem entre 7 e 12; salas 10 e 11: armas e recursos opcionais; sala 12: chefe.
 - Permitir retorno, preservando inimigos derrotados, itens coletados e alterações no cenário.
 - Criar salas de dimensões diferentes com paredes sólidas, caixas destrutíveis, portas, alavancas e armadilhas. Bloquear as passagens da sala enquanto houver inimigos vivos, indicando o bloqueio em vermelho.
-- Câmera acompanha o jogador com zoom fixo de 1,0×, limitada às bordas da sala; não é necessário mostrar a sala inteira.
+- Câmera acompanha o jogador com zoom base de 1,0× em 960×640, escalado proporcionalmente ao tamanho da janela e limitado às bordas da sala; não é necessário mostrar a sala inteira. O jogo abre maximizado em janela redimensionável, com HUD e menus proporcionais.
 - Revelar células de 32 unidades num campo de visão de 220° orientado pela mira, com alcance de 460 unidades e percepção próxima de 110 unidades ao redor do jogador. Paredes e caixas bloqueiam a visão. Regiões exploradas ficam sob sombra de alfa 125; regiões desconhecidas sob alfa 205, permitindo perceber fracamente o cenário. Inimigos fora da visão continuam desenhados sob a sombra do cenário.
 - Caminhar sobre uma porta numerada troca de sala. As chegadas ficam fora do gatilho da porta, com intervalo mínimo de 0,3 segundo entre transições; o dash é interrompido ao entrar. A chave não é consumida ao atravessar a porta 7–12.
 - Sortear inimigos e itens entre posições válidas predefinidas no início da partida, sem bloquear entradas. Salas 2 e 3 recebem duas ondas no total; salas 4–7 e 9–11 recebem três, com grupos crescentes. Após eliminar o grupo atual, há aviso de 3 segundos para os reforços. O surgimento respeita distância mínima de 220 unidades do jogador e sólidos atuais. Pausas e salas inativas congelam a contagem; retornar não reinicia ondas já vencidas. Salas 1, 8 e a arena do chefe não recebem reforços.
+
+## Ajustes de movimento e interface
+
+- Colisões comparam o centro do personagem às faces expandidas dos obstáculos usando a mesma expressão para teste e parada, evitando penetração por arredondamento e deslocamento acumulado ao insistir contra uma parede.
+- Barras de vida e recuperação do dash no canto inferior esquerdo; painel da arma com desenho e munição no canto inferior direito, acompanhando o tamanho da janela.
+- Pistola: pente de 15, recarga de 1,2 s. Escopeta: pente de 7, recarga de 1,8 s; um cartucho por leque de cinco projéteis. Reserva infinita; recarga manual em R ou automática quando o pente esvazia. Cada tipo preserva seu pente ao trocar, sem reabastecer na transição de sala. Recarga avança em combate mesmo com arma guardada, congelando nos estados pausados.
+- Vigia e curandeiro: quatro animações com quatro quadros cada, recortadas das folhas fornecidas. Vigia conversa, aponta e se despede; curandeiro conversa e anima sua cura única, sem alterar as regras do atalho. Conversa anima somente o NPC durante o diálogo; demais temporizadores do mundo permanecem parados.
 
 ## Controles e combate
 

@@ -33,6 +33,7 @@ private:
         bool attack = false;
         bool switchWeapon = false;
         bool dash = false;
+        bool reload = false;
         bool interact = false;
         bool attributes = false;
         Vector2 mouse = {};
@@ -52,7 +53,9 @@ private:
     Combat combat;
     Camera2D camera = {};
     Texture2D knightTexture = {};
-    std::array<Texture2D,3> enemyTextures = {};
+    std::array<Texture2D,4> enemyTextures = {};
+    Texture2D hostileShotTexture = {};
+    std::array<Texture2D,2> npcTextures = {};
 
     void initialize();
     void readInput();
@@ -65,7 +68,9 @@ private:
     Rectangle optionBounds(int index) const;
     void drawOptions(const char* const* options, int count) const;
     static void drawCentered(const char* text, int y, int fontSize, Color color);
+    static Camera2D getUiCamera();
     void drawWorld() const;
+    void drawStatusPanels() const;
     void drawInstructions() const;
     void drawMainMenu() const;
     const char* dialogueText() const;

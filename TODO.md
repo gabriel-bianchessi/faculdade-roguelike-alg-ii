@@ -2,6 +2,14 @@
 
 Baseado no [plano ampliado](anotacoes.md). Executar na ordem das etapas e marcar `[x]` somente após implementar e verificar a tarefa. Os valores de balanceamento iniciais estão no plano.
 
+## Correções e melhorias solicitadas
+
+- [x] Corrigir movimento acumulado ao pressionar paredes; verificar saída imediata na direção oposta.
+- [x] Adicionar barras de vida e recuperação do dash no canto inferior esquerdo.
+- [x] Adicionar painel da arma atual no canto inferior direito e pentes de 15 tiros (pistola) e 7 (escopeta), com reserva infinita e recarga.
+- [x] Recortar e integrar os sprites animados do vigia e do curandeiro.
+- [x] Executar testes de regressão e conferir a interface em janela maximizada.
+
 ## 1. Estrutura e fluxo do jogo
 
 - [x] Compilar o template com `make` e confirmar que a janela abre corretamente.

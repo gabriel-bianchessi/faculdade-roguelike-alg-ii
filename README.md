@@ -30,12 +30,17 @@ O Premake baixa a Raylib quando `build/external/raylib-master` não existe, exig
 |---|---|
 | WASD | Mover, com diagonais normalizadas |
 | Mouse / botão esquerdo | Mirar / atacar continuamente |
+| R | Recarregar o pente da arma de tiros |
 | Q | Alternar entre arma corpo a corpo e arma de tiros |
 | Espaço | Dash, invulnerável na primeira metade |
 | E | Conversar, acionar alavanca ou recolher a arma diferente mais próxima |
 | Tab | Abrir ou fechar a distribuição de atributos |
 | Esc | Pausar ou retomar; avançar diálogo; voltar na ajuda |
 | Setas ou W/S e Enter | Selecionar opções dos menus |
+
+A vida e a recuperação do dash aparecem em barras no canto inferior esquerdo. O painel inferior direito mostra a arma equipada e a munição: pistola com 15 tiros e escopeta com 7 cartuchos. A reserva é infinita; `R` recarrega (1,2 s na pistola e 1,8 s na escopeta), e um pente vazio inicia a recarga automaticamente. Cada disparo da escopeta consome um cartucho para seus cinco projéteis. Trocar de arma ou sala preserva os pentes; as recargas avançam durante a partida, inclusive com a arma guardada, e congelam em pausas e diálogos.
+
+O vigia e o curandeiro usam sprites animados recortados das folhas originais; veja [os detalhes dos NPCs](resources/npcs/README.md).
 
 No menu de instruções, Enter e setas alternam as três páginas: controles, itens/atributos e pontuação. Também é possível selecionar as opções com o mouse.
 
@@ -45,7 +50,7 @@ O caminho principal é `1 → 2 → 3 → 4 → 5 → 6 → 7 → 12`. As ramifi
 
 O vigia está na entrada segura da sala 1. O curandeiro da sala 8 recupera toda a vida uma vez e abre um atalho persistente até a sala 4. Caixas podem ser destruídas por ataques de jogador e inimigos; alavancas desligam os espinhos associados. Espinhos cinza descansam, amarelos avisam e vermelhos causam dano. Inimigos derrotados, itens, exploração e mecanismos permanecem alterados ao retornar.
 
-A câmera usa zoom de 1,0×. A visão acompanha a mira em um campo de 220° com alcance de 460 unidades; paredes e caixas projetam sombras. As áreas fora da iluminação ficam mais claras, preservando a memória da exploração. Inimigos continuam visíveis fora do campo de visão, escurecidos pela mesma sombra do cenário.
+O jogo abre em janela maximizada e redimensionável. Menus, HUD, cliques e câmera acompanham o tamanho da janela. A câmera usa zoom base de 1,0× em 960 × 640, escalado proporcionalmente em janelas maiores. A visão acompanha a mira em um campo de 220° com alcance de 460 unidades; paredes e caixas projetam sombras. As áreas fora da iluminação ficam mais claras, preservando a memória da exploração. Inimigos continuam visíveis fora do campo de visão, escurecidos pela mesma sombra do cenário.
 
 Há perseguidores, atiradores e patrulheiros rápidos. Atiradores continuam se aproximando enquanto disparam, respeitando as colisões. Eles vagueiam fora do alcance de percepção e usam busca em largura na grade para contornar obstáculos. Posições de inimigos e recursos são sorteadas entre candidatos válidos no início de cada partida. As salas 2 e 3 têm duas ondas; as demais salas de combate comuns têm três. Os reforços chegam após eliminar o grupo atual, com aviso de 3 segundos e surgimento distante do jogador. A onda e seu temporizador persistem nas revisitas e param durante pausas. As salas 1 e 8 são seguras. O chefe da sala 12 alterna perseguição, investida anunciada e tiros em leque; abaixo da metade da vida seus intervalos diminuem.
 
@@ -103,6 +108,6 @@ O arquivo gerado fica em `entrega/rogue-like.tar.gz`. A publicação e a apresen
 
 O menu traz uma ilustração geométrica da entrada da fortaleza. As quatro armas têm desenhos próprios no chão e nas mãos do personagem, acompanhando a mira, com animação de golpe ou recuo/clarão ao disparar. As armas são desenhadas pela Raylib. O jogador usa o cavaleiro da imagem `sprites-knight.png`, com 30 quadros separados em `resources/player/frames/` e um atlas em `resources/player/knight.png`: parado, caminhada nas quatro direções, golpe de espada, dano e morte. A textura é carregada automaticamente ao iniciar o jogo, inclusive ao executar pelo caminho do binário. Detalhes e comando para reproduzir a separação estão em [resources/player/README.md](resources/player/README.md).
 
-Os três inimigos comuns também usam sprites animadas: cavaleiro corrompido (perseguidor), besteiro (atirador) e patrulheiro sombrio. São 90 quadros separados em `resources/enemies/`, com caminhada direcional, ataques, dano e morte. As animações de morte não bloqueiam portas nem duplicam XP. Consulte [resources/enemies/README.md](resources/enemies/README.md) para a organização e o extrator.
+Os três inimigos comuns também usam sprites animadas: cavaleiro corrompido (perseguidor), besteiro (atirador) e patrulheiro sombrio. São 90 quadros separados em `resources/enemies/`, com caminhada direcional, ataques, dano e morte. As animações de morte não bloqueiam portas nem duplicam XP. Consulte [resources/enemies/README.md](resources/enemies/README.md) para a organização e o extrator. O chefe usa 48 quadros próprios, incluindo avisos, investida e magia. Os projéteis roxos dos inimigos usam 32 quadros em oito direções; detalhes em [resources/enemies/boss/README.md](resources/enemies/boss/README.md) e [resources/projectiles/README.md](resources/projectiles/README.md).
 
 O template de compilação é [raylib-quickstart](https://github.com/raylib-extras/raylib-quickstart), de Jeffery Myers, disponibilizado sob CC0. A licença da Raylib é incluída na dependência. Esta versão não inclui salvamento, multiplayer, geração procedural de salas nem áudio.

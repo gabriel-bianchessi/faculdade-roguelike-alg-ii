@@ -74,4 +74,18 @@ As passagens ficam bloqueadas enquanto houver inimigos vivos na sala, com indica
 
 O cavaleiro fornecido em `sprites-knight.png` foi separado em 30 PNGs transparentes e um atlas 4 × 8 em `resources/player/`. `player-animation` valida os arquivos, quatro direções, repouso, golpe de espada, dano, pausa, morte e reinício. A textura, o encaixe da pistola para a esquerda, o golpe espelhado e a tela de derrota foram conferidos em janela. A textura pertence a `Game`, permanece carregada nos reinícios e é liberada no encerramento; os testes lógicos não exigem contexto gráfico. Os recursos e a folha original acompanham o pacote.
 
-As folhas de cavaleiro corrompido, besteiro e patrulheiro foram integradas aos três inimigos comuns, com 90 quadros separados e três atlas em `resources/enemies/`. `enemy-animation` valida arquivos, direções, ataque móvel do atirador sem alterar a cadência, dano, morte visual, XP único, portas liberadas, pausa, sala inativa e reinício. A partida completa simulada continua passando. Em janela foram conferidos os três modelos na escala do cavaleiro, caminhada, disparo para a esquerda, dano, morte, sombra fora da visão e liberação das quatro texturas no encerramento. O chefe mantém seu desenho atual por não haver folha correspondente.
+As folhas de cavaleiro corrompido, besteiro e patrulheiro foram integradas aos três inimigos comuns, com 90 quadros separados e três atlas em `resources/enemies/`. `enemy-animation` valida arquivos, direções, ataque móvel do atirador sem alterar a cadência, dano, morte visual, XP único, portas liberadas, pausa, sala inativa e reinício. A partida completa simulada continua passando. Em janela foram conferidos os três modelos na escala do cavaleiro, caminhada, disparo para a esquerda, dano, morte, sombra fora da visão e liberação das quatro texturas no encerramento. O chefe recebeu posteriormente uma folha própria, descrita abaixo.
+
+A janela agora abre maximizada e redimensionável. Menus, HUD, câmera e áreas de clique usam escala proporcional; o escurecimento da pausa cobre a janela inteira. Foram conferidos abertura maximizada em 1920×992, restauração em 1280×720, cliques de ajuda/início/retorno e mira. `movement` verifica a câmera e a conversão da mira em quatro resoluções.
+
+A folha do chefe foi separada em 48 quadros, ligados aos estados de perseguição, aviso de investida, investida, aviso de magia, disparo, recuperação, dano e morte. A morte visual continua durante a vitória sem alterar XP ou pontuação. A folha de projéteis foi separada em 32 quadros para oito direções, com núcleo alinhado à colisão. `boss-visuals` verifica arquivos, direções e pausa; `boss` verifica a correspondência dos estados e a morte na vitória.
+
+## Correções de colisão, HUD, pentes e NPCs
+
+- Reproduzida a penetração por arredondamento em faces fracionárias; teste de contato prolongado e saída imediata passa após comparar centro e faces expandidas com a mesma expressão.
+- Pentes de 15 tiros na pistola e 7 cartuchos na escopeta; reserva infinita, recarga manual em R e automática ao esvaziar, temporizadores preservados na troca e congelados em pausa/diálogo. Um leque consome um cartucho.
+- Vigia e curandeiro com 16 quadros cada, incluindo conversa, gestos e efeito da cura única. Recortes, transparência, congelamento e reinício cobertos em teste.
+- Interface conferida em janela maximizada (1920 × 992) e mínima (960 × 640): barras inferiores à esquerda e painel da arma com munição e progresso de recarga à direita, sem sobreposição do rodapé. Texturas carregam e são descarregadas no encerramento.
+- Partida completa automatizada conclui as 12 salas com o novo sistema de munição. O navegador de teste agora contorna obstáculos quando a célula da grade do alvo está bloqueada.
+
+Validação desta rodada: `bash tests/run.sh`, `ASAN_OPTIONS=detect_leaks=0 bash tests/run.sh --sanitize` e `git diff --check` passaram.

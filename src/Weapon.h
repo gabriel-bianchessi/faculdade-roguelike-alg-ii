@@ -46,3 +46,13 @@ inline const char* weaponName(WeaponType type)
     }
     return "";
 }
+
+inline int magazineCapacity(WeaponType type)
+{
+    return type == WeaponType::Pistol ? 15 : type == WeaponType::Shotgun ? 7 : 0;
+}
+
+inline float reloadDuration(WeaponType type)
+{
+    return type == WeaponType::Pistol ? 1.2f : type == WeaponType::Shotgun ? 1.8f : 0;
+}

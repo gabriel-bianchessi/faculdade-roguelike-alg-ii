@@ -11,6 +11,8 @@ tar --transform='s,^,rogue-like/,' --exclude='*.o' --exclude='*.a' \
     -czf "$output" src tests docs scripts resources sprites-knight.png README.md TODO.md anotacoes.md \
     'Spritesheet de Cavaleiro Corrompido.png' 'Spritesheet do Besteiro Corrompido.png' \
     'Spritesheet do Patrulheiro Sombrio.png' \
+    'Spritesheet do Cavaleiro Sombrio Corrompido.png' 'Spritesheet de Projéteis Mágicos Roxos.png' \
+    'Guarda medieval em animação pixel art.png' 'Spritesheet do Curandeiro Medieval.png' \
     'Câmara de Pedra com Quatro Portais.png' \
     'T3 - Roguelike - 2026.pdf' build/premake5 build/premake5.lua build/ecc \
     build/external/raylib-master/src build/external/raylib-master/LICENSE

@@ -2,6 +2,7 @@
 
 #include "Config.h"
 #include "Scenery.h"
+#include "WeaponVisual.h"
 
 #include <algorithm>
 #include <string>
@@ -21,8 +22,10 @@ void Game::run()
 
 void Game::initialize()
 {
-    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
+    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI | FLAG_WINDOW_RESIZABLE);
     InitWindow(Config::windowWidth, Config::windowHeight, Config::windowTitle);
+    SetWindowMinSize(Config::windowWidth,Config::windowHeight);
+    MaximizeWindow();
     const std::string appDirectory = GetApplicationDirectory();
     const auto loadSprite = [&appDirectory](const std::string& resource) {
         const std::string paths[] = {resource,appDirectory+resource,appDirectory+"../"+resource,
@@ -41,6 +44,10 @@ void Game::initialize()
     enemyTextures[0] = loadSprite("resources/enemies/chaser/atlas.png");
     enemyTextures[1] = loadSprite("resources/enemies/shooter/atlas.png");
     enemyTextures[2] = loadSprite("resources/enemies/patrol/atlas.png");
+    enemyTextures[3] = loadSprite("resources/enemies/boss/atlas.png");
+    hostileShotTexture = loadSprite("resources/projectiles/hostile/atlas.png");
+    npcTextures[0] = loadSprite("resources/npcs/watchman/atlas.png");
+    npcTextures[1] = loadSprite("resources/npcs/healer/atlas.png");
     Scenery::load();
     SetExitKey(KEY_NULL);
     SetTargetFPS(Config::targetFps);
@@ -56,6 +63,7 @@ void Game::readInput()
     input.attack = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
     input.switchWeapon = IsKeyPressed(KEY_Q);
     input.dash = IsKeyPressed(KEY_SPACE);
+    input.reload = IsKeyPressed(KEY_R);
     input.interact = IsKeyPressed(KEY_E);
     input.attributes = IsKeyPressed(KEY_TAB);
     input.mouse = GetMousePosition();
@@ -97,7 +105,7 @@ int Game::readMenuChoice(int optionCount)
 
     for (int i = 0; i < optionCount; ++i)
     {
-        if (input.click && CheckCollisionPointRec(input.mouse, optionBounds(i)))
+        if (input.click && CheckCollisionPointRec(GetScreenToWorld2D(input.mouse,getUiCamera()), optionBounds(i)))
         {
             selectedOption = i;
             return i;
@@ -108,13 +116,15 @@ int Game::readMenuChoice(int optionCount)
 
 void Game::update(float deltaTime)
 {
+    if (state != GameState::Menu)
+        camera = dungeon.currentRoom().getCamera(GetScreenWidth(),GetScreenHeight(),player.getPosition());
     switch (state)
     {
         case GameState::Menu:
         {
             if (showingInstructions)
             {
-                if (input.escape || (input.click && CheckCollisionPointRec(input.mouse, optionBounds(4))))
+                if (input.escape || (input.click && CheckCollisionPointRec(GetScreenToWorld2D(input.mouse,getUiCamera()), optionBounds(4))))
                     showingInstructions = false;
                 else if (input.confirm || input.down || input.click) helpPage = (helpPage+1)%3;
                 else if (input.up) helpPage = (helpPage+2)%3;
@@ -149,11 +159,13 @@ void Game::update(float deltaTime)
                 if (dungeon.currentRoom().interactLever(player.getPosition())) input.interact = false;
             }
             if (input.switchWeapon) combat.switchWeapon();
+            if (input.reload) combat.reload();
             // Passos curtos preservam duracoes e colisoes em quadros lentos.
             for (float remaining = deltaTime; remaining > 0;)
             {
                 const float step = std::min(remaining, 1.0f / 240);
                 elapsedTime += step;
+                dungeon.currentRoom().getNpc().update(step);
                 player.aimAt(GetScreenToWorld2D(input.mouse, camera));
                 player.update(input.movement, step, dungeon.currentRoom(), input.dash);
                 input.dash = false;
@@ -217,6 +229,7 @@ void Game::update(float deltaTime)
             break;
         }
         case GameState::Dialogue:
+            dungeon.currentRoom().getNpc().update(deltaTime,true,dialogueLine);
             if (input.interact || input.confirm || input.escape)
             {
                 ++dialogueLine;
@@ -231,12 +244,21 @@ void Game::update(float deltaTime)
         case GameState::Defeat:
         {
             if (state == GameState::Defeat) player.updateDeathAnimation(deltaTime);
+            else dungeon.currentRoom().updateEnemyDeaths(deltaTime);
             const int choice = readMenuChoice(2);
             if (choice == 0) startNewGame();
             else if (choice == 1 || input.escape) changeState(GameState::Menu);
             break;
         }
     }
+}
+
+Camera2D Game::getUiCamera()
+{
+    const int width = GetScreenWidth() > 0 ? GetScreenWidth() : Config::windowWidth;
+    const int height = GetScreenHeight() > 0 ? GetScreenHeight() : Config::windowHeight;
+    const float scale = Config::windowScale(width,height);
+    return {{(width-Config::windowWidth*scale)/2,(height-Config::windowHeight*scale)/2},{},0,scale};
 }
 
 void Game::drawCentered(const char* text, int y, int fontSize, Color color)
@@ -268,30 +290,32 @@ void Game::drawOptions(const char* const* options, int count) const
 
 void Game::drawWorld() const
 {
-    BeginScissorMode(0, static_cast<int>(Config::hudHeight), GetScreenWidth(),
-                     static_cast<int>(GetScreenHeight() - Config::hudHeight - Config::footerHeight));
+    const float scale = Config::windowScale(GetScreenWidth(),GetScreenHeight());
+    BeginScissorMode(0, static_cast<int>(Config::hudHeight*scale), GetScreenWidth(),
+                     static_cast<int>(GetScreenHeight() - (Config::hudHeight + Config::footerHeight)*scale));
     BeginMode2D(camera);
     dungeon.currentRoom().draw();
     dungeon.drawDetails();
-    dungeon.currentRoom().drawInteractions(player.getPosition());
+    const NpcType npcType = dungeon.currentRoom().getNpc().type;
+    dungeon.currentRoom().drawInteractions(player.getPosition(),
+        npcType == NpcType::None ? Texture2D{} : npcTextures[npcType == NpcType::Healer ? 1 : 0]);
     drawItems(dungeon.currentRoom(), player, combat);
     dungeon.currentRoom().drawWaveWarning();
     combat.draw(player, dungeon.currentRoom(),player.getHealth() > 0 &&
-        !(IsTextureValid(knightTexture) && player.usesSwordAttackSprite()),enemyTextures);
+        !(IsTextureValid(knightTexture) && player.usesSwordAttackSprite()),enemyTextures,hostileShotTexture);
     player.draw(knightTexture);
     dungeon.currentRoom().drawExploration();
     if (dungeon.currentRoom().getId() == 12)
         for (const Enemy& enemy : dungeon.currentRoom().getEnemies())
             if (enemy.getType() == EnemyType::Boss && dungeon.currentRoom().isVisible(enemy.getPosition()))
-                DrawText("Guardiao corrompido", enemy.getPosition().x-115, enemy.getPosition().y-66, 18, GOLD);
+                DrawText("Guardiao corrompido", enemy.getPosition().x-115, enemy.getPosition().y-94, 18, GOLD);
     EndMode2D();
     EndScissorMode();
-    DrawText(TextFormat("Vida: %i/%i  Escudo: %i", player.getHealth(), player.getMaxHealth(), player.getShield()),
-             20, 8, 20, Config::accent);
-    DrawText(TextFormat("Armas: %s / %s [%s]", weaponName(combat.getMeleeWeapon()),
-             weaponName(combat.getRangedWeapon()), weaponName(combat.getWeapon().type)), 330, 8, 18, Config::text);
-    DrawText(player.getDashCooldown() <= 0 ? "Dash pronto" : TextFormat("Dash %.1fs", player.getDashCooldown()),
-             790, 8, 18, Config::text);
+    Camera2D hudCamera = getUiCamera();
+    hudCamera.offset.y = 0;
+    BeginMode2D(hudCamera);
+    DrawText("FORTALEZA CORROMPIDA",20,8,20,Config::accent);
+    DrawText(TextFormat("Escudo: %i",player.getShield()),730,8,18,Config::text);
     DrawText(TextFormat("Nivel %i | XP %i/%i | Pontos %i (Tab) | Pontuacao %i", player.getLevel(),
              player.getExperience(), player.getNextLevelCost(), player.getAttributePoints(),
              player.getScore(dungeon.getDiscoveredCount())), 20, 35, 18, Config::text);
@@ -307,8 +331,55 @@ void Game::drawWorld() const
         DrawText("Portas: elimine os inimigos", 690, 62, 16, RED);
     else if (dungeon.nearLockedDoor(player.getPosition()))
         DrawText("Trancada: chave na sala 9", 690, 62, 16, GOLD);
-    DrawText("WASD: mover | Clique: atacar | Q: arma | Espaco: dash | E: interagir | Tab: atributos | Esc", 20,
-             Config::windowHeight - 34, 16, Config::muted);
+    DrawText("WASD: mover | Clique: atacar | Q: arma | R: recarregar | Espaco: dash | E: interagir | Tab | Esc", 20,
+             static_cast<int>(GetScreenHeight()/scale) - 34, 16, Config::muted);
+    EndMode2D();
+    drawStatusPanels();
+}
+
+void Game::drawStatusPanels() const
+{
+    const float scale = Config::windowScale(GetScreenWidth(),GetScreenHeight());
+    Camera2D view{};
+    view.zoom = scale;
+    BeginMode2D(view);
+    const float y = GetScreenHeight()/scale - Config::footerHeight - 112;
+    const Color border{92,94,83,255}, track{12,17,20,255};
+    DrawRectangleRec({20,y,254,100},Fade(Config::background,0.95f));
+    DrawRectangleLinesEx({20,y,254,100},1,border);
+    DrawText("VIDA",34,y+12,16,Config::text);
+    const std::string health = std::to_string(player.getHealth())+" / "+std::to_string(player.getMaxHealth());
+    DrawText(health.c_str(),260-MeasureText(health.c_str(),16),y+12,16,Config::text);
+    DrawRectangleRec({34,y+34,226,12},track);
+    DrawRectangleRec({34,y+34,226*static_cast<float>(player.getHealth())/player.getMaxHealth(),12},{182,75,69,255});
+    DrawText("DASH",34,y+57,14,Config::muted);
+    const bool ready = player.getDashCooldown() <= 0;
+    const char* dash = ready ? "PRONTO" : TextFormat("%.1f s",player.getDashCooldown());
+    DrawText(dash,260-MeasureText(dash,14),y+57,14,ready ? Config::accent : Config::muted);
+    DrawRectangleRec({34,y+79,226,7},track);
+    const float dashFill = std::clamp(1-player.getDashCooldown()/Config::dashCooldown,0.0f,1.0f);
+    DrawRectangleRec({34,y+79,226*dashFill,7},Config::accent);
+    const float x = GetScreenWidth()/scale-274;
+    DrawRectangleRec({x,y,254,100},Fade(Config::background,0.95f));
+    DrawRectangleLinesEx({x,y,254,100},1,border);
+    DrawText(weaponName(combat.getWeapon().type),x+16,y+12,20,Config::text);
+    drawWeapon(combat.getWeapon().type,{x+36,y+55},{1,0});
+    if (combat.getWeapon().category == WeaponCategory::Ranged)
+    {
+        DrawText(TextFormat("%02i / %i",combat.getAmmo(),magazineCapacity(combat.getWeapon().type)),
+            x+105,y+40,24,combat.getAmmo() == 0 ? ORANGE : Config::text);
+        if (combat.getReloadRemaining() > 0)
+        {
+            DrawText("RECARREGANDO",x+105,y+68,12,ORANGE);
+            DrawRectangleRec({x+16,y+89,222,3},track);
+            DrawRectangleRec({x+16,y+89,222*(1-combat.getReloadRemaining()/reloadDuration(combat.getWeapon().type)),3},ORANGE);
+        }
+        else DrawText("R: recarregar | reserva infinita",x+16,y+82,12,Config::muted);
+    }
+    else DrawText("CORPO A CORPO",x+105,y+48,14,Config::muted);
+    if (combat.getWeapon().category == WeaponCategory::Melee)
+        DrawText("Q: trocar arma",x+105,y+74,12,Config::muted);
+    EndMode2D();
 }
 
 void Game::drawInstructions() const
@@ -320,7 +391,7 @@ void Game::drawInstructions() const
         drawCentered("Liberte o guardiao corrompido na sala 12.", 145, 22, Config::text);
         drawCentered("Explore as salas. A chave da sala 9 abre o portao da sala 7.", 195, 20, Config::text);
         drawCentered("WASD: mover | Mouse: mirar | Clique: atacar", 255, 20, Config::text);
-        drawCentered("Q: alternar armas | Espaco: dash | E: interagir", 300, 20, Config::text);
+        drawCentered("Q: armas | R: recarregar | Espaco: dash | E: interagir", 300, 20, Config::text);
         drawCentered("Tab: distribuir atributos | Esc: pausar", 345, 20, Config::text);
         drawCentered("Caminhe sobre portas numeradas. Ao morrer, a partida termina.", 405, 18, Config::muted);
         drawCentered("Fale com o vigia e com o curandeiro no refugio da sala 8.", 445, 18, Config::muted);
@@ -359,15 +430,18 @@ void Game::draw() const
     ClearBackground(Config::background);
     if (state == GameState::Menu)
     {
+        BeginMode2D(getUiCamera());
         if (showingInstructions) drawInstructions();
         else drawMainMenu();
+        EndMode2D();
     }
     else
     {
         drawWorld();
         if (state != GameState::Playing)
         {
-            DrawRectangle(0, 0, Config::windowWidth, Config::windowHeight, Config::overlay);
+            DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Config::overlay);
+            BeginMode2D(getUiCamera());
             if (state == GameState::Paused)
             {
                 drawCentered("Pausa", 180, 40, Config::accent);
@@ -402,6 +476,7 @@ void Game::draw() const
                 const char* options[] = {"Reiniciar partida", "Voltar ao menu"};
                 drawOptions(options, 2);
             }
+            EndMode2D();
         }
     }
     EndDrawing();
@@ -412,6 +487,13 @@ void Game::shutdown()
     Scenery::unload();
     if (IsTextureValid(knightTexture)) UnloadTexture(knightTexture);
     knightTexture = {};
+    if (IsTextureValid(hostileShotTexture)) UnloadTexture(hostileShotTexture);
+    hostileShotTexture = {};
+    for (Texture2D& texture : npcTextures)
+    {
+        if (IsTextureValid(texture)) UnloadTexture(texture);
+        texture = {};
+    }
     for (Texture2D& texture : enemyTextures)
     {
         if (IsTextureValid(texture)) UnloadTexture(texture);

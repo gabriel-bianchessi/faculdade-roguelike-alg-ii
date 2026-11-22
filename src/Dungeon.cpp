@@ -175,6 +175,7 @@ void Dungeon::finishDialogue(Player& player)
     {
         player.heal(player.getMaxHealth());
         npc.healingUsed = true;
+        npc.healingAnimationRemaining = 1.28f;
     }
     if (shortcutOpen) return;
     shortcutOpen = true;

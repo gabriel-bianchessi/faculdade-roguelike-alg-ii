@@ -33,6 +33,34 @@ void Combat::switchWeapon()
     equipped = getWeapon().category == WeaponCategory::Melee ? rangedWeapon : meleeWeapon;
 }
 
+Combat::Magazine& Combat::currentMagazine()
+{
+    return equipped == WeaponType::Shotgun ? shotgunMagazine : pistolMagazine;
+}
+
+const Combat::Magazine& Combat::currentMagazine() const
+{
+    return equipped == WeaponType::Shotgun ? shotgunMagazine : pistolMagazine;
+}
+
+int Combat::getAmmo() const
+{
+    return getWeapon().category == WeaponCategory::Ranged ? currentMagazine().rounds : 0;
+}
+
+float Combat::getReloadRemaining() const
+{
+    return getWeapon().category == WeaponCategory::Ranged ? currentMagazine().reloadRemaining : 0;
+}
+
+void Combat::reload()
+{
+    if (getWeapon().category != WeaponCategory::Ranged) return;
+    Magazine& magazine = currentMagazine();
+    if (magazine.reloadRemaining > 0 || magazine.rounds == magazineCapacity(equipped)) return;
+    magazine.reloadRemaining = reloadDuration(equipped);
+}
+
 WeaponType Combat::replaceWeapon(WeaponType type)
 {
     WeaponType& slot = weaponConfig(type).category == WeaponCategory::Melee ? meleeWeapon : rangedWeapon;
@@ -47,9 +75,13 @@ void Combat::attack(Player& player)
     const WeaponConfig& weapon = getWeapon();
     float& cooldown = weapon.category == WeaponCategory::Melee ? meleeCooldown : rangedCooldown;
     if (cooldown > 0.00001f) return;
+    if (weapon.category == WeaponCategory::Ranged &&
+        (currentMagazine().reloadRemaining > 0 || currentMagazine().rounds <= 0)) return;
     cooldown += weapon.interval;
     if (weapon.category == WeaponCategory::Ranged)
     {
+        --currentMagazine().rounds;
+        if (currentMagazine().rounds == 0) reload();
         muzzleFlash = 0.07f;
         for (int pellet = 0; pellet < weapon.projectileCount; ++pellet)
         {
@@ -96,6 +128,13 @@ void Combat::resolveSwing(Room& room)
 
 void Combat::update(float deltaTime, bool attacking, Player& player, Room& room)
 {
+    for (WeaponType type : {WeaponType::Pistol,WeaponType::Shotgun})
+    {
+        Magazine& magazine = type == WeaponType::Pistol ? pistolMagazine : shotgunMagazine;
+        if (magazine.reloadRemaining <= 0) continue;
+        magazine.reloadRemaining = std::max(0.0f,magazine.reloadRemaining-deltaTime);
+        if (magazine.reloadRemaining == 0) magazine.rounds = magazineCapacity(type);
+    }
     muzzleFlash = std::max(0.0f,muzzleFlash-deltaTime);
     meleeCooldown -= deltaTime;
     rangedCooldown -= deltaTime;
@@ -144,14 +183,14 @@ void Combat::update(float deltaTime, bool attacking, Player& player, Room& room)
     std::erase_if(room.getEnemies(), [&player, &room](const Enemy& enemy) {
         if (enemy.isAlive()) return false;
         player.recordDefeat(enemy.getExperienceReward());
-        if (enemy.getType() != EnemyType::Boss) room.getDyingEnemies().push_back(enemy);
+        room.getDyingEnemies().push_back(enemy);
         if (enemy.getType() == EnemyType::Boss && room.getId() == 12) player.recordVictory();
         return true;
     });
 }
 
 void Combat::draw(const Player& player, const Room& room, bool drawHeldWeapon,
-                  const std::array<Texture2D,3>& enemyTextures) const
+                  const std::array<Texture2D,4>& enemyTextures, Texture2D hostileShotTexture) const
 {
     const auto drawEnemy = [&enemyTextures](const Enemy& enemy) {
         const auto index = static_cast<std::size_t>(enemy.getType());
@@ -160,7 +199,13 @@ void Combat::draw(const Player& player, const Room& room, bool drawHeldWeapon,
     for (const Enemy& enemy : room.getDyingEnemies()) drawEnemy(enemy);
     for (const Enemy& enemy : room.getEnemies())
         if (enemy.isAlive()) drawEnemy(enemy);
-    for (const EnemyShot& shot : room.getEnemyShots()) DrawCircleV(shot.position, 4, RED);
+    for (const EnemyShot& shot : room.getEnemyShots())
+    {
+        if (IsTextureValid(hostileShotTexture))
+            DrawTexturePro(hostileShotTexture,{shot.getSpriteFrame()*256.0f,shot.getSpriteRow()*256.0f,256,256},
+                {shot.position.x-20,shot.position.y-20,40,40},{},0,WHITE);
+        else DrawCircleV(shot.position,4,RED);
+    }
     for (const Projectile& projectile : projectiles) DrawCircleV(projectile.position, Config::projectileRadius, GOLD);
     if (!drawHeldWeapon) return;
     Vector2 direction = player.getDirection();

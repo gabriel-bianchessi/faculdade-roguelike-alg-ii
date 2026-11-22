@@ -112,6 +112,26 @@ int main()
         near(corner.getPosition(), {wall + half, wall + half});
     }
 
+    // Contato prolongado em faces fracionarias nao acumula deslocamento na parede.
+    Room fractional(1437.3f, 987.7f);
+    fractional.setObstacles({{300.13f, 400.0f, 97.23f, 98.001f}});
+    const Rectangle face = fractional.getSolids()[4];
+    const Vector2 contacts[] = {{face.x-half,face.y+40},
+        {face.x+face.width+half,face.y+40}, {face.x+40,face.y-half},
+        {face.x+40,face.y+face.height+half}, {200,987.7f-wall-half}};
+    const Vector2 into[] = {{1,0},{-1,0},{0,1},{0,-1},{0,1}};
+    for (int i=0;i<5;++i)
+        for (int fps : {30,60,144,240})
+        {
+            Player pressed(contacts[i]);
+            for (int frame=0;frame<fps*8;++frame)
+                pressed.update(into[i],1.0f/fps,fractional);
+            near(pressed.getPosition(),contacts[i]);
+            const Vector2 beforeRelease=pressed.getPosition();
+            pressed.update(Vector2Negate(into[i]),1.0f/fps,fractional);
+            near(Vector2Distance(beforeRelease,pressed.getPosition()),240.0f/fps);
+        }
+
     // Mira usa a posicao apos o movimento; mirar no proprio centro preserva a direcao.
     Player aiming(start);
     aiming.aimAt({200, 400});
@@ -162,5 +182,21 @@ int main()
     Player movingAim({600, 400});
     movingAim.aimAt(GetScreenToWorld2D({after.offset.x + 100, after.offset.y}, after));
     near(movingAim.getDirection(), {1, 0});
+    // Janela maior escala o jogo sem distorcer a mira ou invadir o HUD/rodape.
+    Room large(2400,1800);
+    for (Vector2 viewport : {Vector2{960,640},Vector2{1280,720},Vector2{1920,1080},Vector2{1280,1024}})
+    {
+        const float scale = Config::windowScale(viewport.x,viewport.y);
+        const Camera2D view = large.getCamera(viewport.x,viewport.y,{1200,900});
+        near(view.zoom,scale);
+        near(view.offset.x,viewport.x/2);
+        const float available = viewport.y-(Config::hudHeight+Config::footerHeight)*scale;
+        near(view.offset.y,Config::hudHeight*scale+available/2);
+        const Vector2 point{1300,800};
+        near(GetScreenToWorld2D(GetWorldToScreen2D(point,view),view),point);
+        const Vector2 top = GetScreenToWorld2D({view.offset.x,Config::hudHeight*scale},view);
+        const Vector2 bottom = GetScreenToWorld2D({view.offset.x,viewport.y-Config::footerHeight*scale},view);
+        near(bottom.y-top.y,available/view.zoom);
+    }
     std::puts("OK: velocidade, diagonais, FPS, paredes, obstaculos, deslizamento, cantos, mira e camera.");
 }

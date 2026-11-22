@@ -21,17 +21,30 @@ class Combat
 {
 public:
     void switchWeapon();
+    void reload();
+    int getAmmo() const;
+    float getReloadRemaining() const;
+
     WeaponType replaceWeapon(WeaponType type);
     WeaponType getMeleeWeapon() const { return meleeWeapon; }
     WeaponType getRangedWeapon() const { return rangedWeapon; }
     void update(float deltaTime, bool attack, Player& player, Room& room);
     void draw(const Player& player, const Room& room, bool drawHeldWeapon = true,
-              const std::array<Texture2D,3>& enemyTextures = {}) const;
+              const std::array<Texture2D,4>& enemyTextures = {}, Texture2D hostileShotTexture = {}) const;
     void clearTransient();
     const WeaponConfig& getWeapon() const { return weaponConfig(equipped); }
     const std::vector<Projectile>& getProjectiles() const { return projectiles; }
 
 private:
+    struct Magazine
+    {
+        int rounds;
+        float reloadRemaining = 0;
+    };
+    Magazine pistolMagazine{15};
+    Magazine shotgunMagazine{7};
+    Magazine& currentMagazine();
+    const Magazine& currentMagazine() const;
     WeaponType equipped = WeaponType::Sword;
     WeaponType meleeWeapon = WeaponType::Sword;
     WeaponType rangedWeapon = WeaponType::Pistol;

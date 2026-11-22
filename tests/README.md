@@ -10,7 +10,7 @@ O script compila o jogo, compila os testes com C++20 e `-Wall -Wextra -Wshadow` 
 
 | Arquivo | Cobertura |
 |---|---|
-| movement.cpp | Movimento cardinal/diagonal em 15, 30, 60, 144 e 240 FPS; cantos, colisão varrida, deslizamento, mira e câmera |
+| movement.cpp | Movimento cardinal/diagonal em 15, 30, 60, 144 e 240 FPS; cantos, colisão varrida, deslizamento, mira e câmera em quatro resoluções |
 | combat.cpp | Dano único por golpe, área, cadência, tiros, paredes, invulnerabilidade, dash e perseguidor |
 | combat-flow.cpp | Seleção por teclado preservada ao passar o mouse, seleção/confirmação por clique em todos os menus, pausa, temporizadores congelados, morte, reinício, tiros ao trocar de sala, movimento contínuo após o atalho 8–4 e interação única por quadro |
 | exploration.cpp | Todas as conexões, chegadas livres, acessibilidade, fog, persistência, chave, porta trancada e bloqueio por inimigos vivos (retorno, ramificação, atalho e chefe) |
@@ -21,6 +21,7 @@ O script compila o jogo, compila os testes com C++20 e `-Wall -Wextra -Wshadow` 
 | interactions.cpp | Caixas e grade, ataques de ambos os lados, ciclos de espinhos, alavancas, diálogos, cura única e atalho |
 | navigation.cpp | BFS contornando parede, caminho sem saída/reaberto, atirador, patrulheiro, vaguear e 40 entidades |
 | dungeon-content.cpp | 100 sementes, posições válidas, ausência de sobreposição, salas seguras, conexões das 12 salas e reprodutibilidade |
+| boss-visuals.cpp | Atlas, 48 quadros do chefe, 32 dos projéteis, oito direções, relógio de animação, pausa e reinício |
 | boss.cpp | Aviso, investida, leque, fase acelerada, colisão, 100 XP, vitória única e reinício |
 | vision-waves.cpp | Visão direcional, oclusão por paredes/caixas, memória, zoom, ondas finitas, surgimento seguro, pausa e persistência |
 | full-run.cpp | Partida real simulada: movimento até portas, combates, 12 descobertas, chave, armas, NPC, atributos, chefe, vitória, derrota e reinícios |
@@ -40,3 +41,12 @@ ASAN_OPTIONS=detect_leaks=0 bash tests/run.sh --sanitize
 ```
 
 Isso não verifica vazamentos. A inspeção de propriedade confirma que as entidades usam valores/`std::vector`, sem `new`/`delete` manuais. Testes lógicos não substituem inspeção visual: menu, três páginas da ajuda, HUD, atributos, diálogo, armadilhas, aviso do chefe e resultado também foram abertos e conferidos em janela de 960 × 640.
+
+As regressões de `movement.cpp` mantêm pressão por oito segundos contra faces
+fracionárias e verificam saída imediata no sentido oposto em quatro taxas de quadros.
+`ammunition.cpp` cobre pentes 15/7, um cartucho por leque, recarga manual e automática,
+reserva infinita, troca de armas/salas, pausa, diálogo e reinício.
+`npc-visuals.cpp` valida os 32 recortes, transparência e margens, gestos de diálogo,
+efeito de cura única, congelamento em pausa e reinício.
+O navegador da partida completa aproxima alvos em células bloqueadas da grade
+pelo centro livre mais próximo com visada, simulando contorno manual do obstáculo.

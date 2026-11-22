@@ -10,7 +10,22 @@
 Vector2 navigate(const Room& room, Vector2 start, Vector2 goal)
 {
     if (room.lineClear(start, goal, Config::playerHalfSize+1)) return Vector2Subtract(goal,start);
-    const auto path = room.findPath(start,goal);
+    // Um alvo encostado no obstaculo pode ocupar uma celula cuja grade larga
+    // nao e transitavel. Aproxima pelo centro livre mais proximo com visada.
+    Vector2 pathGoal = goal;
+    if (!room.isWalkable(static_cast<int>(goal.x/Config::cellSize),static_cast<int>(goal.y/Config::cellSize)))
+    {
+        float best = 1e20f;
+        for (int row=0;row<room.getRows();++row)
+            for (int column=0;column<room.getColumns();++column)
+            {
+                const Vector2 center{(column+0.5f)*Config::cellSize,(row+0.5f)*Config::cellSize};
+                const float distance = Vector2Distance(center,goal);
+                if (room.isWalkable(column,row) && distance < best && room.lineClear(center,goal,4))
+                { best=distance;pathGoal=center; }
+            }
+    }
+    const auto path = room.findPath(start,pathGoal);
     Vector2 next = start;
     for (Vector2 point : path)
     {

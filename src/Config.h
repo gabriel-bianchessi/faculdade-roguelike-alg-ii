@@ -1,11 +1,17 @@
 #pragma once
 
 #include "raylib.h"
+#include <algorithm>
 
 namespace Config
 {
     inline constexpr int windowWidth = 960;
     inline constexpr int windowHeight = 640;
+    inline float windowScale(int width, int height)
+    {
+        if (width <= 0 || height <= 0) return 1;
+        return std::min(static_cast<float>(width)/windowWidth,static_cast<float>(height)/windowHeight);
+    }
     inline constexpr int targetFps = 60;
     inline constexpr const char* windowTitle = "Rogue Like";
 
