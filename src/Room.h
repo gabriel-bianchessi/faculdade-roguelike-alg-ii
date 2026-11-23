@@ -81,7 +81,7 @@ public:
     Camera2D getCamera(int screenWidth, int screenHeight, Vector2 focus) const;
     void draw() const;
     void drawExploration() const;
-    void drawInteractions(Vector2 playerPosition, Texture2D npcTexture = {}) const;
+    void drawInteractions(Vector2 playerPosition, Texture2D npcTexture = {}, bool watchmanRecruited = false) const;
     void addBox(Rectangle area);
     void setObstacles(const std::vector<Rectangle>& obstacles);
     void damageBox(std::size_t index, float damage, unsigned int swing = 0);
@@ -99,6 +99,8 @@ public:
     const std::vector<EnemyShot>& getEnemyShots() const { return enemyShots; }
     void updateEnemyShots(float deltaTime, Player& player);
     void updateHazards(float deltaTime, Player& player);
+    void updateItemDestruction(float deltaTime);
+    void drawItemDestruction() const;
     void reveal(Vector2 position, Vector2 direction = {1,0});
     void configureWaves(std::vector<std::vector<Enemy>> reinforcements, std::vector<Vector2> candidates);
     void updateWaves(float deltaTime, const Player& player);
@@ -111,6 +113,8 @@ public:
     float getWaveRemaining() const { return waveRemaining; }
     bool discover();
     int getId() const { return id; }
+    int getStage() const { return id == 12 ? 3 : id <= 3 ? 1 : 2; }
+    const char* getName() const;
     bool isDiscovered() const { return discovered; }
     int getColumns() const { return columns; }
     int getRows() const { return rows; }
@@ -155,6 +159,8 @@ private:
     std::vector<Enemy> enemies;
     std::vector<Enemy> dyingEnemies;
     std::vector<Item> items;
+    struct DestroyedItem { Vector2 position; float remaining; };
+    std::vector<DestroyedItem> destroyedItems;
     std::vector<Connection> connections;
     bool keyPresent = false;
     Vector2 keyPosition = {};

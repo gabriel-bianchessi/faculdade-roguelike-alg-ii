@@ -12,7 +12,10 @@ int main()
     {
         Dungeon dungeon(seed);
         assert(dungeon.findRoom(1)->getEnemies().empty() && dungeon.findRoom(8)->getEnemies().empty());
-        for (int id = 1; id <= 12; ++id)
+        dungeon.currentIndex=9;
+        assert(dungeon.interactSecret(dungeon.getSecretPosition()));
+        dungeon.currentIndex=0;
+        for (int id = 1; id <= 13; ++id)
         {
             const Room& room = *dungeon.findRoom(id);
             layouts.insert(static_cast<int>(room.getBounds().width));
@@ -65,5 +68,5 @@ int main()
     const Vector2 pb = b.findRoom(5)->getEnemies()[0].getPosition();
     const Vector2 pc = c.findRoom(5)->getEnemies()[0].getPosition();
     assert(Vector2Distance(pa,pb) == 0 && Vector2Distance(pa,pc) > 0);
-    std::cout << "OK: 100 sementes, 12 salas, rotas, surgimentos, entradas e tipos de inimigo.\n";
+    std::cout << "OK: 100 sementes, 13 salas incluindo tesouro, rotas, surgimentos, entradas e tipos de inimigo.\n";
 }

@@ -268,7 +268,7 @@ void Npc::update(float deltaTime, bool talking, int line)
     animationRow = row;
 }
 
-void Room::drawInteractions(Vector2 playerPosition, Texture2D npcTexture) const
+void Room::drawInteractions(Vector2 playerPosition, Texture2D npcTexture, bool watchmanRecruited) const
 {
     for (const Box& box : boxes)
     {
@@ -295,7 +295,7 @@ void Room::drawInteractions(Vector2 playerPosition, Texture2D npcTexture) const
         if (Vector2Distance(playerPosition, lever.position) <= Config::interactionRadius)
             DrawText(lever.activated ? "Desativada" : "E: desativar espinhos", lever.position.x-50, lever.position.y-44, 14, GOLD);
     }
-    if (npc.type != NpcType::None)
+    if (npc.type != NpcType::None && !(npc.type == NpcType::Watchman && watchmanRecruited))
     {
         if (IsTextureValid(npcTexture))
         {
@@ -473,4 +473,40 @@ void Room::drawWaveWarning() const
         DrawLineEx({candidate.x-8,candidate.y},{candidate.x+8,candidate.y},2,ORANGE);
         DrawLineEx({candidate.x,candidate.y-8},{candidate.x,candidate.y+8},2,ORANGE);
     }
+}
+
+void Room::updateItemDestruction(float deltaTime)
+{
+    for (DestroyedItem& effect : destroyedItems) effect.remaining -= deltaTime;
+    std::erase_if(destroyedItems,[](const DestroyedItem& effect) { return effect.remaining <= 0; });
+    std::erase_if(items,[this](const Item& item) {
+        if (item.type == ItemType::Weapon) return false;
+        for (const Enemy& enemy : enemies)
+            if (enemy.isAlive() && enemy.getType() != EnemyType::Boss &&
+                Vector2Distance(enemy.getPosition(),item.position) <= Config::enemyHalfSize+Config::itemRadius &&
+                lineClear(enemy.getPosition(),item.position))
+            {
+                destroyedItems.push_back({item.position,0.8f});
+                return true;
+            }
+        return false;
+    });
+}
+
+void Room::drawItemDestruction() const
+{
+    for (const DestroyedItem& effect : destroyedItems)
+    {
+        const float age = 0.8f-effect.remaining;
+        const Color color = Fade(ORANGE,effect.remaining/0.8f);
+        DrawCircleLines(effect.position.x,effect.position.y,8+age*24,color);
+        DrawText("Item destruido",effect.position.x-48,effect.position.y-22-age*20,12,color);
+    }
+}
+
+const char* Room::getName() const
+{
+    const char* names[] = {"Entrada", "Corredor", "Galeria", "Oficinas", "Arsenal", "Bastiao",
+        "Portao", "Refugio", "Arquivo", "Deposito", "Guarnicao", "Santuario", "Tesouro secreto"};
+    return id >= 1 && id <= 13 ? names[id-1] : "Masmorra";
 }

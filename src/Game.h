@@ -5,13 +5,18 @@
 #include "Room.h"
 #include "Combat.h"
 #include "Dungeon.h"
+#include "Ranking.h"
+#include "Companion.h"
 
 enum class GameState
 {
     Menu,
+    DifficultySelection,
+    Ranking,
     Playing,
     Paused,
     Attributes,
+    Inventory,
     Dialogue,
     Victory,
     Defeat
@@ -36,6 +41,7 @@ private:
         bool reload = false;
         bool interact = false;
         bool attributes = false;
+        bool inventory = false;
         Vector2 mouse = {};
         Vector2 movement = {};
     };
@@ -48,9 +54,16 @@ private:
     float elapsedTime = 0.0f;
     int dialogueLine = 0;
     int helpPage = 0;
+    int rankingPage = 0;
+    std::string rankingPath;
+    std::vector<Result> ranking;
+    bool resultSaved = false;
+    bool rankingSaveFailed = false;
+    Difficulty difficulty = Difficulty::Normal;
     Dungeon dungeon;
     Player player;
     Combat combat;
+    Companion companion;
     Camera2D camera = {};
     Texture2D knightTexture = {};
     std::array<Texture2D,4> enemyTextures = {};
@@ -73,5 +86,7 @@ private:
     void drawStatusPanels() const;
     void drawInstructions() const;
     void drawMainMenu() const;
+    void drawRanking() const;
+    void drawInventory() const;
     const char* dialogueText() const;
 };

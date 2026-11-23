@@ -119,20 +119,24 @@ GENERATED :=
 OBJECTS :=
 
 GENERATED += $(OBJDIR)/Combat.o
+GENERATED += $(OBJDIR)/Companion.o
 GENERATED += $(OBJDIR)/Dungeon.o
 GENERATED += $(OBJDIR)/Enemy.o
 GENERATED += $(OBJDIR)/Game.o
 GENERATED += $(OBJDIR)/Item.o
 GENERATED += $(OBJDIR)/Player.o
+GENERATED += $(OBJDIR)/Ranking.o
 GENERATED += $(OBJDIR)/Room.o
 GENERATED += $(OBJDIR)/WeaponVisual.o
 GENERATED += $(OBJDIR)/main.o
 OBJECTS += $(OBJDIR)/Combat.o
+OBJECTS += $(OBJDIR)/Companion.o
 OBJECTS += $(OBJDIR)/Dungeon.o
 OBJECTS += $(OBJDIR)/Enemy.o
 OBJECTS += $(OBJDIR)/Game.o
 OBJECTS += $(OBJDIR)/Item.o
 OBJECTS += $(OBJDIR)/Player.o
+OBJECTS += $(OBJDIR)/Ranking.o
 OBJECTS += $(OBJDIR)/Room.o
 OBJECTS += $(OBJDIR)/WeaponVisual.o
 OBJECTS += $(OBJDIR)/main.o
@@ -202,6 +206,9 @@ endif
 $(OBJDIR)/Combat.o: src/Combat.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/Companion.o: src/Companion.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/Dungeon.o: src/Dungeon.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
@@ -215,6 +222,9 @@ $(OBJDIR)/Item.o: src/Item.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/Player.o: src/Player.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/Ranking.o: src/Ranking.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/Room.o: src/Room.cpp

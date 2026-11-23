@@ -89,3 +89,19 @@ A folha do chefe foi separada em 48 quadros, ligados aos estados de perseguiçã
 - Partida completa automatizada conclui as 12 salas com o novo sistema de munição. O navegador de teste agora contorna obstáculos quando a célula da grade do alvo está bloqueada.
 
 Validação desta rodada: `bash tests/run.sh`, `ASAN_OPTIONS=detect_leaks=0 bash tests/run.sh --sanitize` e `git diff --check` passaram.
+
+
+## Parte 2 — dificuldades, ranking, itens, aliado e segredo
+
+Referência e matriz de requisitos: [PARTE-2.md](PARTE-2.md). Áudio adiado a pedido; modo Computador/NPC autônomo fora do escopo desta rodada.
+
+- `difficulty`: 300 partidas semeadas verificam que quantidades, proporções de tipos e recursos mudam com a dificuldade, mantendo a chave e as salas seguras.
+- `ranking`: arquivo ausente, linhas corrompidas, persistência, ordenação/desempate, falha de gravação, tempo na fórmula e uma gravação por vitória/derrota.
+- `part2-items`: cristal de XP, registro das armas iniciais sem pontos extras, histórico de coletas, inventário pausado e reset.
+- `enemy-items`: consumíveis destruídos, aviso com duração limitada, armas/chave preservadas, inimigos mortos/chefe sem destruição e parede bloqueando a interação.
+- `companion`: recrutamento, navegação em torno de obstáculo, aproximação de jogador em célula bloqueada da grade, colisão, ataque, XP único inclusive no chefe, pausa, acompanhamento entre salas e reset.
+- `bonus-room`: segredo por proximidade, ligação criada uma vez, passagem bloqueada em combate, recompensas persistentes e três etapas identificadas. `dungeon-content` inclui a passagem aberta e as 13 salas nas 100 sementes.
+- A partida completa, pelas mesmas entradas e atualização do jogo, recruta o vigia, visita as 13 salas, coleta cristais/chave/armas, fala com o curandeiro e vence; também verifica derrota e reinícios. Na semente 42: 107 inimigos derrotados, nível 10, vida 180 e aproximadamente 370,5 segundos ativos. O controlador é exclusivo do teste e não está disponível como modo de jogo.
+- Capturas conferidas em 1920×992 e 960×640: menu com ranking, seleção de dificuldade, inventário, ranking, aliado, cor do bônus e sala bônus. Recursos gráficos descarregados no encerramento.
+
+`bash tests/run.sh`, `ASAN_OPTIONS=detect_leaks=0 bash tests/run.sh --sanitize` e `git diff --check` passaram nesta etapa. Sanitizadores verificam acessos inválidos e comportamento indefinido; LeakSanitizer está desativado pelas limitações do executor.

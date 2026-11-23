@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-Dungeon::Dungeon(unsigned int seed)
+Dungeon::Dungeon(unsigned int seed, Difficulty difficulty)
 {
     const Vector2 dimensions[] = {{1120,768}, {1280,800}, {1440,864}, {1280,960},
         {1536,896}, {1408,960}, {1600,1024}, {960,640}, {1152,768}, {1280,864}, {1376,800}, {1664,1088}};
@@ -22,6 +22,11 @@ Dungeon::Dungeon(unsigned int seed)
         if (id == 12) room.setObstacles({{w*0.25f,h*0.22f,64,64}, {w*0.72f,h*0.22f,64,64},
             {w*0.25f,h*0.72f,64,64}, {w*0.72f,h*0.72f,64,64}});
     }
+    rooms.emplace_back(1024,768,13);
+    findRoom(13)->setObstacles({{440,300,144,48}});
+    findRoom(13)->getItems().push_back({ItemType::Experience,{512,440},WeaponType::Sword,100});
+    findRoom(13)->getItems().push_back({ItemType::Shield,{400,440},WeaponType::Sword,Config::shieldAmount});
+    findRoom(13)->getItems().push_back({ItemType::HealthKit,{624,440}});
     for (int id = 1; id < 7; ++id) connect(id, id + 1);
     connect(7, 12, false, true);
     connect(2, 8, true);
@@ -45,10 +50,11 @@ Dungeon::Dungeon(unsigned int seed)
     findRoom(10)->getItems().push_back({ItemType::Weapon, {250, 160}, WeaponType::Spear});
     findRoom(11)->getItems().push_back({ItemType::Weapon, {250, 160}, WeaponType::Shotgun});
     findRoom(10)->getItems().push_back({ItemType::HealthKit, {250, 240}});
+    findRoom(8)->getItems().push_back({ItemType::Experience,{380,220},WeaponType::Sword,30});
     findRoom(11)->getItems().push_back({ItemType::DamageBoost, {250, 240}, WeaponType::Sword, Config::damageBonusPercent});
     findRoom(9)->placeKey({250, 160});
     findRoom(12)->getEnemies().emplace_back(Vector2{dimensions[11].x*0.58f, dimensions[11].y*0.48f}, EnemyType::Boss);
-    populate(seed);
+    populate(seed, difficulty);
     discoveredCount += currentRoom().discover();
     currentRoom().reveal(currentRoom().getSpawn());
 }
@@ -97,7 +103,7 @@ bool Dungeon::update(float deltaTime, Player& player)
     if (room.collectKey(player.getPosition()))
     {
         keyCollected = true;
-        player.recordCollection();
+        player.recordCollection(8);
     }
     const Vector2 position = player.getPosition();
     const float half = Config::playerHalfSize;
@@ -157,6 +163,19 @@ void Dungeon::drawDetails() const
             DrawLineEx({door.x+5,door.y+door.height-10},{door.x+door.width-5,door.y+door.height-10},4,color);
         }
     }
+    if (currentRoom().getId() == 10 && !secretOpen && currentRoom().isVisible(getSecretPosition()))
+    {
+        const Vector2 crack = getSecretPosition();
+        DrawLineEx({crack.x,crack.y-27},{crack.x-9,crack.y-5},3,{132,127,93,255});
+        DrawLineEx({crack.x-9,crack.y-5},{crack.x+3,crack.y+8},3,{132,127,93,255});
+        DrawLineEx({crack.x+3,crack.y+8},{crack.x-5,crack.y+29},3,{132,127,93,255});
+    }
+    if (currentRoom().getId() == 13)
+    {
+        DrawRectangleLinesEx({280,220,464,330},3,Fade(GOLD,0.45f));
+        DrawText("TESOURO ESQUECIDO",350,255,22,GOLD);
+        DrawPolyLines({512,380},4,30,45,GOLD);
+    }
     if (currentRoom().hasKey())
     {
         const Vector2 position = currentRoom().getKeyPosition();
@@ -186,13 +205,19 @@ void Dungeon::finishDialogue(Player& player)
     main.getConnections().push_back({4, 8, {main.getBounds().width-80, 180, 48, 64}, {safe.getBounds().width-132, 212}});
 }
 
-void Dungeon::populate(unsigned int seed)
+void Dungeon::populate(unsigned int seed, Difficulty difficulty)
 {
     std::mt19937 random(seed);
+    const DifficultyRules rules = difficultyRules(difficulty);
+    const auto enemyType = [&]() {
+        const int roll = random()%100;
+        return roll < rules.chaserChance ? EnemyType::Chaser :
+            roll < rules.chaserChance+rules.shooterChance ? EnemyType::Shooter : EnemyType::Patrol;
+    };
     for (Room& room : rooms)
     {
         const int id = room.getId();
-        if (id == 1 || id == 8 || id == 12) continue;
+        if (id == 1 || id == 8 || id == 12 || id == 13) continue;
         const Rectangle bounds = room.getBounds();
         // Posicoes candidatas manuais, escaladas conforme cada sala.
         std::vector<Vector2> candidates;
@@ -214,7 +239,7 @@ void Dungeon::populate(unsigned int seed)
             if (!blocked) wavePositions.push_back(position);
         }
         int spawned = 0;
-        const int desired = id < 4 ? 2 : 3 + static_cast<int>(random()%2);
+        const int desired = (id < 4 ? 2 : 3 + static_cast<int>(random()%2)) + rules.extraEnemies;
         for (Vector2 position : candidates)
         {
             if (!room.freePosition(position, 24)) continue;
@@ -226,13 +251,14 @@ void Dungeon::populate(unsigned int seed)
             if (spawned < desired)
             {
                 const EnemyType type = id == 2 ? EnemyType::Chaser :
-                    static_cast<EnemyType>(random()%3);
+                    enemyType();
                 room.getEnemies().emplace_back(position, type);
                 ++spawned;
             }
-            else if (random()%2 == 0)
+            else if (static_cast<int>(random()%100) < rules.resourceChance)
             {
-                const ItemType type = static_cast<ItemType>(random()%3);
+                const int roll = random()%4;
+                const ItemType type = roll == 3 ? ItemType::Experience : static_cast<ItemType>(roll);
                 const int amount = type == ItemType::DamageBoost ? Config::damageBonusPercent : Config::kitHeal;
                 room.getItems().push_back({type, position, WeaponType::Sword, amount});
             }
@@ -246,9 +272,28 @@ void Dungeon::populate(unsigned int seed)
             std::vector<Enemy> group;
             const int count = std::min(static_cast<int>(wavePositions.size()),desired+wave+1);
             for (int i = 0; i < count; ++i)
-                group.emplace_back(wavePositions[i], id == 2 ? EnemyType::Chaser : static_cast<EnemyType>(random()%3));
+                group.emplace_back(wavePositions[i], id == 2 ? EnemyType::Chaser : enemyType());
             if (!group.empty()) reinforcements.push_back(std::move(group));
         }
         room.configureWaves(std::move(reinforcements),std::move(wavePositions));
     }
+}
+
+Vector2 Dungeon::getSecretPosition() const
+{
+    const Rectangle bounds = rooms[9].getBounds();
+    return {bounds.width-56,bounds.height-180};
+}
+
+bool Dungeon::interactSecret(Vector2 position)
+{
+    if (currentRoom().getId() != 10 || secretOpen ||
+        Vector2Distance(position,getSecretPosition()) > Config::interactionRadius) return false;
+    secretOpen = true;
+    Room& source = *findRoom(10);
+    Room& bonus = *findRoom(13);
+    const Vector2 crack = getSecretPosition();
+    source.getConnections().push_back({10,13,{crack.x-24,crack.y-32,48,64},{132,384}});
+    bonus.getConnections().push_back({13,10,{32,352,48,64},{crack.x-76,crack.y}});
+    return true;
 }

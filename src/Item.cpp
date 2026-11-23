@@ -47,9 +47,12 @@ void collectItems(Room& room, Player& player, Combat& combat, bool interact)
             case ItemType::DamageBoost:
                 player.boostDamage(item.amount / 100.0f, item.duration);
                 break;
+            case ItemType::Experience:
+                player.gainExperience(item.amount);
+                break;
             case ItemType::Weapon: return false;
         }
-        player.recordCollection();
+        player.recordCollection(item.type == ItemType::Experience ? 7 : static_cast<int>(item.type));
         return true;
     });
     if (!interact) return;
@@ -60,7 +63,7 @@ void collectItems(Room& room, Player& player, Combat& combat, bool interact)
     const WeaponType dropped = combat.replaceWeapon(picked.weapon);
     items.erase(items.begin() + index);
     items.push_back({ItemType::Weapon, picked.position, dropped});
-    player.recordCollection();
+    player.recordCollection(3+static_cast<int>(picked.weapon));
     // Uma tecla realiza uma unica troca. A arma descartada so pode ser recolhida
     // em outra interacao, mesmo estando na mesma posicao da arma original.
 }
@@ -86,6 +89,10 @@ void drawItems(const Room& room, const Player& player, const Combat& combat)
                 DrawRectanglePro({p.x, p.y, 20, 20}, {10, 10}, 45, PURPLE);
                 DrawText("+", static_cast<int>(p.x - 5), static_cast<int>(p.y - 9), 18, WHITE);
                 break;
+            case ItemType::Experience:
+                DrawPoly(p,4,13,0,SKYBLUE);
+                DrawPoly(p,4,7,0,WHITE);
+                break;
             case ItemType::Weapon:
             {
                 DrawEllipse(p.x,p.y+10,24,7,Fade(BLACK,0.35f));
@@ -99,4 +106,11 @@ void drawItems(const Room& room, const Player& player, const Combat& combat)
         DrawText(TextFormat("E: %s", weaponName(weapon->weapon)),
                  static_cast<int>(weapon->position.x - 35), static_cast<int>(weapon->position.y - 32),
                  16, Config::text);
+}
+
+const char* collectionName(int kind)
+{
+    const char* names[] = {"Kit de vida", "Escudo", "Furia", "Espada", "Pistola",
+        "Lanca", "Escopeta", "Cristal de XP", "Chave"};
+    return kind >= 0 && kind < 9 ? names[kind] : "";
 }

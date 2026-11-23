@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Config.h"
+#include <array>
 
 class Room;
 
@@ -35,7 +36,13 @@ public:
     float getBonusRemaining() const { return bonusRemaining; }
     float getDamageMultiplier() const { return (1 + attributes.strength * Config::strengthBonus) *
         (bonusRemaining > 0 ? 1 + bonusPercent : 1); }
-    void recordCollection() { ++itemsCollected; collectionFlash = 0.25f; }
+    void recordCollection(int kind = -1)
+    {
+        ++itemsCollected;
+        collectionFlash = 0.25f;
+        if (kind >= 0 && kind < static_cast<int>(collectedKinds.size())) collectedKinds[kind] = true;
+    }
+    bool hasCollected(int kind) const { return collectedKinds.at(kind); }
     int getItemsCollected() const { return itemsCollected; }
     void gainExperience(int amount);
     void recordDefeat(int experience);
@@ -50,7 +57,7 @@ public:
     int getHealing() const { return healing; }
     bool hasWon() const { return victorious; }
     void recordVictory() { victorious = true; }
-    int getScore(int discoveredRooms) const;
+    int getScore(int discoveredRooms, float activeSeconds = 0) const;
     bool isInvulnerable() const;
     float getDashCooldown() const { return dashCooldown; }
 
@@ -80,6 +87,7 @@ private:
     float collectionFlash = 0;
     int shield = 0;
     int itemsCollected = 0;
+    std::array<bool,9> collectedKinds{};
     float bonusPercent = 0;
     float bonusRemaining = 0;
     float damageProtection = 0.0f;

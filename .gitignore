@@ -409,3 +409,6 @@ Makefile
 
 # Pacote local de entrega
 /entrega/
+
+# Ranking local (fallback sem HOME/XDG_DATA_HOME)
+/ranking.txt

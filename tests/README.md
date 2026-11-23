@@ -20,11 +20,11 @@ O script compila o jogo, compila os testes com C++20 e `-Wall -Wextra -Wshadow` 
 | progression.cpp | XP excedente/múltiplos níveis, pontos, atributos derivados, cura, distância real, fórmula, pausa e reset |
 | interactions.cpp | Caixas e grade, ataques de ambos os lados, ciclos de espinhos, alavancas, diálogos, cura única e atalho |
 | navigation.cpp | BFS contornando parede, caminho sem saída/reaberto, atirador, patrulheiro, vaguear e 40 entidades |
-| dungeon-content.cpp | 100 sementes, posições válidas, ausência de sobreposição, salas seguras, conexões das 12 salas e reprodutibilidade |
+| dungeon-content.cpp | 100 sementes, posições válidas, ausência de sobreposição, salas seguras, conexões das 13 salas incluindo tesouro e reprodutibilidade |
 | boss-visuals.cpp | Atlas, 48 quadros do chefe, 32 dos projéteis, oito direções, relógio de animação, pausa e reinício |
 | boss.cpp | Aviso, investida, leque, fase acelerada, colisão, 100 XP, vitória única e reinício |
 | vision-waves.cpp | Visão direcional, oclusão por paredes/caixas, memória, zoom, ondas finitas, surgimento seguro, pausa e persistência |
-| full-run.cpp | Partida real simulada: movimento até portas, combates, 12 descobertas, chave, armas, NPC, atributos, chefe, vitória, derrota e reinícios |
+| full-run.cpp | Partida real simulada: movimento até portas, combates, 13 descobertas, chave, armas, companheiro, tesouro, NPC, atributos, chefe, vitória, derrota e reinícios |
 
 `full-run.cpp` usa uma semente fixa para ser reproduzível. O controlador escolhe entradas de movimento, mira, ataque e menus; não teleporta, altera vida, concede dano nem adiciona recursos na partida vitoriosa. A derrota posterior usa um perseguidor de teste junto ao jogador parado para verificar o fluxo de morte.
 
@@ -50,3 +50,17 @@ reserva infinita, troca de armas/salas, pausa, diálogo e reinício.
 efeito de cura única, congelamento em pausa e reinício.
 O navegador da partida completa aproxima alvos em células bloqueadas da grade
 pelo centro livre mais próximo com visada, simulando contorno manual do obstáculo.
+
+
+Testes da parte 2:
+
+| Arquivo | Cobertura |
+|---|---|
+| difficulty.cpp | 300 partidas semeadas: progressão preservada, probabilidades de recursos/tipos/quantidades e seleção de dificuldade |
+| ranking.cpp | Tempo na fórmula, persistência/ordenação, arquivo ausente/corrompido, falha de gravação e registro único por partida |
+| part2-items.cpp | Cristal de XP, histórico de armas/itens, inventário congelando o mundo e reset |
+| enemy-items.cpp | Destruição de consumíveis, efeito transitório, preservação de armas/chave e bloqueio por paredes |
+| companion.cpp | Recrutamento, BFS em volta de obstáculo, destino em célula bloqueada, colisão, mortes/chefe, XP único, pausa, transição e reset |
+| bonus-room.cpp | Segredo por proximidade, ligação única, bloqueio em combate, recompensa/XP, persistência e identificação de fases |
+
+A partida completa também recruta o vigia e visita o tesouro. Esse controlador existe apenas nos testes e não implementa o modo Computador/NPC solicitado separadamente pelo enunciado.

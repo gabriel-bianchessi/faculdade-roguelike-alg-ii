@@ -8,6 +8,8 @@
 
 Player::Player(Vector2 startPosition) : position(startPosition)
 {
+    collectedKinds[3] = true;
+    collectedKinds[4] = true;
 }
 
 void Player::update(Vector2 movement, float deltaTime, const Room& room, bool dash)
@@ -128,6 +130,7 @@ void Player::aimAt(Vector2 mouseWorld)
 void Player::draw(Texture2D knightTexture) const
 {
     if (shield > 0) DrawCircleLines(position.x, position.y, Config::playerHalfSize+7, SKYBLUE);
+    if (bonusRemaining > 0) DrawCircleLines(position.x,position.y,Config::playerHalfSize+10,PURPLE);
     if (collectionFlash > 0) DrawCircleLines(position.x, position.y, 22+(0.25f-collectionFlash)*80, GOLD);
     const float size = Config::playerHalfSize;
     if (IsTextureValid(knightTexture))
@@ -142,7 +145,7 @@ void Player::draw(Texture2D knightTexture) const
         DrawEllipse(position.x,position.y+size,15,5,Fade(BLACK,0.35f));
         DrawTexturePro(knightTexture,source,
             {position.x-anchor*scale,position.y+size-116*scale,192*scale,128*scale},
-            {},0,isInvulnerable() ? Color{185,220,255,255} : WHITE);
+            {},0,isInvulnerable() ? Color{185,220,255,255} : bonusRemaining > 0 ? Color{225,140,255,255} : WHITE);
     }
     else DrawRectangleRec({position.x - size, position.y - size, size * 2, size * 2}, isInvulnerable() ? SKYBLUE : Config::accent);
     const Vector2 aimEnd = Vector2Add(position, Vector2Scale(direction, Config::aimLength));
@@ -184,8 +187,8 @@ bool Player::spendPoint(Attribute attribute)
     return true;
 }
 
-int Player::getScore(int discoveredRooms) const
+int Player::getScore(int discoveredRooms, float activeSeconds) const
 {
     return std::max(0, Config::scoreEnemy * defeatedCount + Config::scoreItem * itemsCollected + Config::scoreRoom * discoveredRooms +
-        (victorious ? Config::scoreVictory : 0) - static_cast<int>(std::floor(distance / Config::scoreDistanceUnit)) - Config::scoreHealingPenalty * healing);
+        (victorious ? Config::scoreVictory : 0) - static_cast<int>(std::floor(distance / Config::scoreDistanceUnit)) - Config::scoreHealingPenalty * healing - static_cast<int>(std::floor(std::max(0.0f,activeSeconds)/10)));
 }

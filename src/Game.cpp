@@ -49,6 +49,8 @@ void Game::initialize()
     npcTextures[0] = loadSprite("resources/npcs/watchman/atlas.png");
     npcTextures[1] = loadSprite("resources/npcs/healer/atlas.png");
     Scenery::load();
+    rankingPath = defaultRankingPath();
+    ranking = loadRanking(rankingPath);
     SetExitKey(KEY_NULL);
     SetTargetFPS(Config::targetFps);
 }
@@ -66,6 +68,7 @@ void Game::readInput()
     input.reload = IsKeyPressed(KEY_R);
     input.interact = IsKeyPressed(KEY_E);
     input.attributes = IsKeyPressed(KEY_TAB);
+    input.inventory = IsKeyPressed(KEY_I);
     input.mouse = GetMousePosition();
     input.movement = {
         static_cast<float>(IsKeyDown(KEY_D) - IsKeyDown(KEY_A)),
@@ -75,18 +78,31 @@ void Game::readInput()
 
 void Game::changeState(GameState nextState)
 {
+    if ((nextState == GameState::Victory || nextState == GameState::Defeat) && !resultSaved)
+    {
+        resultSaved = true;
+        if (!rankingPath.empty())
+        {
+            rankingSaveFailed = !saveResult(rankingPath,{player.getScore(dungeon.getDiscoveredCount(),elapsedTime),
+                elapsedTime,difficulty,nextState == GameState::Victory});
+            ranking = loadRanking(rankingPath);
+        }
+    }
     state = nextState;
-    selectedOption = 0;
+    selectedOption = nextState == GameState::DifficultySelection ? static_cast<int>(difficulty) : 0;
     showingInstructions = false;
 }
 
 void Game::startNewGame()
 {
     elapsedTime = 0.0f;
+    resultSaved = false;
+    rankingSaveFailed = false;
     dialogueLine = 0;
-    dungeon = Dungeon();
+    dungeon = Dungeon(std::random_device{}(), difficulty);
     player = Player(dungeon.currentRoom().getSpawn());
     combat = Combat();
+    companion = Companion();
     camera = dungeon.currentRoom().getCamera(GetScreenWidth(), GetScreenHeight(), player.getPosition());
     changeState(GameState::Playing);
 }
@@ -94,7 +110,7 @@ void Game::startNewGame()
 Rectangle Game::optionBounds(int index) const
 {
     if (state == GameState::Menu && !showingInstructions)
-        return {76,350.0f+index*59,340,48};
+        return {76,338.0f+index*51,340,44};
     return {Config::windowWidth / 2.0f - 170, 290.0f + index * 64, 340, 50};
 }
 
@@ -116,7 +132,7 @@ int Game::readMenuChoice(int optionCount)
 
 void Game::update(float deltaTime)
 {
-    if (state != GameState::Menu)
+    if (state != GameState::Menu && state != GameState::DifficultySelection && state != GameState::Ranking)
         camera = dungeon.currentRoom().getCamera(GetScreenWidth(),GetScreenHeight(),player.getPosition());
     switch (state)
     {
@@ -130,16 +146,47 @@ void Game::update(float deltaTime)
                 else if (input.up) helpPage = (helpPage+2)%3;
                 break;
             }
-            const int choice = readMenuChoice(3);
-            if (choice == 0) startNewGame();
+            const int choice = readMenuChoice(4);
+            if (choice == 0) changeState(GameState::DifficultySelection);
             else if (choice == 1) { showingInstructions = true; helpPage = 0; }
-            else if (choice == 2) exitRequested = true;
+            else if (choice == 2)
+            {
+                ranking = loadRanking(rankingPath);
+                rankingPage = 0;
+                changeState(GameState::Ranking);
+            }
+            else if (choice == 3) exitRequested = true;
+            break;
+        }
+        case GameState::Ranking:
+            if (input.escape || input.confirm) changeState(GameState::Menu);
+            else
+            {
+                const int lastPage = ranking.empty() ? 0 : (static_cast<int>(ranking.size())-1)/8;
+                if (input.down) rankingPage = std::min(lastPage,rankingPage+1);
+                if (input.up) rankingPage = std::max(0,rankingPage-1);
+            }
+            break;
+        case GameState::DifficultySelection:
+        {
+            if (input.escape) { changeState(GameState::Menu); break; }
+            const int choice = readMenuChoice(3);
+            if (choice >= 0)
+            {
+                difficulty = static_cast<Difficulty>(choice);
+                startNewGame();
+            }
             break;
         }
         case GameState::Playing:
             if (input.escape)
             {
                 changeState(GameState::Paused);
+                break;
+            }
+            if (input.inventory)
+            {
+                changeState(GameState::Inventory);
                 break;
             }
             if (input.attributes)
@@ -150,13 +197,14 @@ void Game::update(float deltaTime)
             if (input.interact)
             {
                 const Npc& npc = dungeon.currentRoom().getNpc();
-                if (npc.type != NpcType::None && Vector2Distance(player.getPosition(), npc.position) <= Config::interactionRadius)
+                if (npc.type != NpcType::None && !(npc.type == NpcType::Watchman && companion.isActive()) && Vector2Distance(player.getPosition(), npc.position) <= Config::interactionRadius)
                 {
                     dialogueLine = 0;
                     changeState(GameState::Dialogue);
                     break;
                 }
-                if (dungeon.currentRoom().interactLever(player.getPosition())) input.interact = false;
+                if (dungeon.interactSecret(player.getPosition()) ||
+                    dungeon.currentRoom().interactLever(player.getPosition())) input.interact = false;
             }
             if (input.switchWeapon) combat.switchWeapon();
             if (input.reload) combat.reload();
@@ -171,12 +219,14 @@ void Game::update(float deltaTime)
                 input.dash = false;
                 camera = dungeon.currentRoom().getCamera(GetScreenWidth(), GetScreenHeight(), player.getPosition());
                 player.aimAt(GetScreenToWorld2D(input.mouse, camera));
+                const int previousLevel = player.getLevel();
                 collectItems(dungeon.currentRoom(), player, combat, input.interact);
                 input.interact = false;
-                const int previousLevel = player.getLevel();
                 dungeon.currentRoom().updateEnemyDeaths(step);
+                companion.update(step,player,dungeon.currentRoom());
                 combat.update(step, input.attack, player, dungeon.currentRoom());
                 for (Enemy& enemy : dungeon.currentRoom().getEnemies()) enemy.update(step, dungeon.currentRoom(), player);
+                dungeon.currentRoom().updateItemDestruction(step);
                 dungeon.currentRoom().updateHazards(step, player);
                 dungeon.currentRoom().updateEnemyShots(step, player);
                 dungeon.currentRoom().updateWaves(step, player);
@@ -193,6 +243,7 @@ void Game::update(float deltaTime)
                 if (dungeon.update(step, player))
                 {
                     combat.clearTransient();
+                    companion.enterRoom(player.getPosition());
                     camera = dungeon.currentRoom().getCamera(GetScreenWidth(), GetScreenHeight(), player.getPosition());
                 }
                 if (player.getLevel() > previousLevel)
@@ -216,6 +267,9 @@ void Game::update(float deltaTime)
             else if (choice == 2) changeState(GameState::Menu);
             break;
         }
+        case GameState::Inventory:
+            if (input.escape || input.inventory || input.confirm) changeState(GameState::Playing);
+            break;
         case GameState::Attributes:
         {
             if (input.escape || input.attributes)
@@ -236,6 +290,8 @@ void Game::update(float deltaTime)
                 if (dialogueLine >= 3)
                 {
                     dungeon.finishDialogue(player);
+                    if (dungeon.currentRoom().getNpc().type == NpcType::Watchman)
+                        companion.recruit(dungeon.currentRoom().getNpc().position);
                     changeState(GameState::Playing);
                 }
             }
@@ -298,11 +354,19 @@ void Game::drawWorld() const
     dungeon.drawDetails();
     const NpcType npcType = dungeon.currentRoom().getNpc().type;
     dungeon.currentRoom().drawInteractions(player.getPosition(),
-        npcType == NpcType::None ? Texture2D{} : npcTextures[npcType == NpcType::Healer ? 1 : 0]);
+        npcType == NpcType::None ? Texture2D{} : npcTextures[npcType == NpcType::Healer ? 1 : 0],companion.isActive());
     drawItems(dungeon.currentRoom(), player, combat);
     dungeon.currentRoom().drawWaveWarning();
+    dungeon.currentRoom().drawItemDestruction();
+    if (dungeon.currentRoom().getId() == 10 && !dungeon.isSecretOpen() &&
+        Vector2Distance(player.getPosition(),dungeon.getSecretPosition()) <= Config::interactionRadius)
+    {
+        const Vector2 crack = dungeon.getSecretPosition();
+        DrawText("E: examinar rachadura",crack.x-165,crack.y-52,14,GOLD);
+    }
     combat.draw(player, dungeon.currentRoom(),player.getHealth() > 0 &&
         !(IsTextureValid(knightTexture) && player.usesSwordAttackSprite()),enemyTextures,hostileShotTexture);
+    companion.draw(npcTextures[0]);
     player.draw(knightTexture);
     dungeon.currentRoom().drawExploration();
     if (dungeon.currentRoom().getId() == 12)
@@ -314,11 +378,13 @@ void Game::drawWorld() const
     Camera2D hudCamera = getUiCamera();
     hudCamera.offset.y = 0;
     BeginMode2D(hudCamera);
-    DrawText("FORTALEZA CORROMPIDA",20,8,20,Config::accent);
+    DrawText(TextFormat("%s | %s | %s",dungeon.currentRoom().getId() == 13 ? "BONUS" :
+        TextFormat("FASE %i",dungeon.currentRoom().getStage()),dungeon.currentRoom().getName(),
+        difficultyName(difficulty)),20,8,20,Config::accent);
     DrawText(TextFormat("Escudo: %i",player.getShield()),730,8,18,Config::text);
     DrawText(TextFormat("Nivel %i | XP %i/%i | Pontos %i (Tab) | Pontuacao %i", player.getLevel(),
              player.getExperience(), player.getNextLevelCost(), player.getAttributePoints(),
-             player.getScore(dungeon.getDiscoveredCount())), 20, 35, 18, Config::text);
+             player.getScore(dungeon.getDiscoveredCount(),elapsedTime)), 20, 35, 18, Config::text);
     DrawText(TextFormat("Sala %i | Chave: %s | Bonus %.1fs | Tempo %.1fs",
              dungeon.currentRoom().getId(), dungeon.hasKey() ? "sim" : "nao",
              player.getBonusRemaining(), elapsedTime), 20, 62, 16, Config::muted);
@@ -331,7 +397,7 @@ void Game::drawWorld() const
         DrawText("Portas: elimine os inimigos", 690, 62, 16, RED);
     else if (dungeon.nearLockedDoor(player.getPosition()))
         DrawText("Trancada: chave na sala 9", 690, 62, 16, GOLD);
-    DrawText("WASD: mover | Clique: atacar | Q: arma | R: recarregar | Espaco: dash | E: interagir | Tab | Esc", 20,
+    DrawText("WASD: mover | Clique: atacar | Q: arma | R: recarregar | Espaco: dash | E: interagir | I: itens | Tab | Esc", 20,
              static_cast<int>(GetScreenHeight()/scale) - 34, 16, Config::muted);
     EndMode2D();
     drawStatusPanels();
@@ -362,6 +428,10 @@ void Game::drawStatusPanels() const
     const float x = GetScreenWidth()/scale-274;
     DrawRectangleRec({x,y,254,100},Fade(Config::background,0.95f));
     DrawRectangleLinesEx({x,y,254,100},1,border);
+    DrawRectangleRec({x,y-40,254,34},Fade(Config::background,0.95f));
+    drawWeapon(combat.getMeleeWeapon(),{x+24,y-23},{1,0},0.6f);
+    drawWeapon(combat.getRangedWeapon(),{x+94,y-23},{1,0},0.6f);
+    DrawText("I: itens",x+160,y-28,14,Config::text);
     DrawText(weaponName(combat.getWeapon().type),x+16,y+12,20,Config::text);
     drawWeapon(combat.getWeapon().type,{x+36,y+55},{1,0});
     if (combat.getWeapon().category == WeaponCategory::Ranged)
@@ -392,7 +462,7 @@ void Game::drawInstructions() const
         drawCentered("Explore as salas. A chave da sala 9 abre o portao da sala 7.", 195, 20, Config::text);
         drawCentered("WASD: mover | Mouse: mirar | Clique: atacar", 255, 20, Config::text);
         drawCentered("Q: armas | R: recarregar | Espaco: dash | E: interagir", 300, 20, Config::text);
-        drawCentered("Tab: distribuir atributos | Esc: pausar", 345, 20, Config::text);
+        drawCentered("Tab: atributos | I: itens coletados | Esc: pausar", 345, 20, Config::text);
         drawCentered("Caminhe sobre portas numeradas. Ao morrer, a partida termina.", 405, 18, Config::muted);
         drawCentered("Fale com o vigia e com o curandeiro no refugio da sala 8.", 445, 18, Config::muted);
     }
@@ -413,7 +483,7 @@ void Game::drawInstructions() const
         drawCentered("+200 por sala descoberta | +1000 pela vitoria", 205, 22, Config::text);
         drawCentered("-1 a cada 100 unidades percorridas (inclui dash)", 265, 20, Config::text);
         drawCentered("-2 por ponto de vida realmente recuperado", 315, 20, Config::text);
-        drawCentered("Curas de kits, curandeiro e Vitalidade entram na conta.", 365, 18, Config::muted);
+        drawCentered("-1 por 10 segundos ativos; pausas nao contam.", 365, 18, Config::muted);
         drawCentered("Pontuacao minima: zero. Retornar a uma sala nao soma descoberta.", 415, 18, Config::muted);
         drawCentered("XP: 20 por inimigo comum e 100 pelo guardiao.", 460, 20, Config::text);
     }
@@ -428,10 +498,19 @@ void Game::draw() const
 {
     BeginDrawing();
     ClearBackground(Config::background);
-    if (state == GameState::Menu)
+    if (state == GameState::Menu || state == GameState::DifficultySelection || state == GameState::Ranking)
     {
         BeginMode2D(getUiCamera());
-        if (showingInstructions) drawInstructions();
+        if (state == GameState::DifficultySelection)
+        {
+            drawCentered("Escolha a dificuldade",150,36,Config::accent);
+            drawCentered("A dificuldade altera encontros e chances de recursos.",210,18,Config::muted);
+            const char* options[] = {"Facil", "Normal", "Dificil"};
+            drawOptions(options,3);
+            drawCentered("Esc: voltar",520,18,Config::muted);
+        }
+        else if (state == GameState::Ranking) drawRanking();
+        else if (showingInstructions) drawInstructions();
         else drawMainMenu();
         EndMode2D();
     }
@@ -454,6 +533,7 @@ void Game::draw() const
                 drawCentered(dialogueText(), 310, 20, Config::text);
                 drawCentered("E / Enter / Esc: continuar", 400, 20, GOLD);
             }
+            else if (state == GameState::Inventory) drawInventory();
             else if (state == GameState::Attributes)
             {
                 drawCentered("Distribuicao de atributos", 120, 36, Config::accent);
@@ -471,8 +551,9 @@ void Game::draw() const
             {
                 drawCentered(state == GameState::Victory ? "Vitoria" : "Derrota",
                              180, 40, Config::accent);
-                drawCentered(TextFormat("Pontuacao final: %i", player.getScore(dungeon.getDiscoveredCount())),
+                drawCentered(TextFormat("Pontuacao final: %i", player.getScore(dungeon.getDiscoveredCount(),elapsedTime)),
                     235, 24, Config::text);
+                if (rankingSaveFailed) drawCentered("Nao foi possivel salvar o ranking.",450,18,ORANGE);
                 const char* options[] = {"Reiniciar partida", "Voltar ao menu"};
                 drawOptions(options, 2);
             }
@@ -509,7 +590,7 @@ const char* Game::dialogueText() const
     {
         const char* lines[] = {"A corrupcao tomou o guardiao desta fortaleza.",
             "Encontre a chave na sala 9 para abrir o portao da sala 7.",
-            "Derrote o guardiao na sala 12. O curandeiro espera na sala 8."};
+            "Vou acompanha-lo. O curandeiro espera na sala 8."};
         return lines[dialogueLine];
     }
     const char* lines[] = {"O guardiao tentou conter a corrupcao e acabou dominado.",
@@ -569,8 +650,8 @@ void Game::drawMainMenu() const
     DrawText("DO GUARDIAO",76,201,32,paper);
     DrawText("Encontre a chave.",78,267,18,dust);
     DrawText("Enfrente o guardiao.",78,291,18,dust);
-    const char* labels[] = {"Entrar na fortaleza","Como jogar","Sair"};
-    for (int i=0; i<3; ++i)
+    const char* labels[] = {"Entrar na fortaleza","Como jogar","Ranking","Sair"};
+    for (int i=0; i<4; ++i)
     {
         const Rectangle area=optionBounds(i);
         const bool selected=i==selectedOption;
@@ -585,4 +666,70 @@ void Game::drawMainMenu() const
     DrawLine(76,555,416,555,{53,56,49,255});
     DrawText("W/S ou setas para escolher",78,574,14,dust);
     DrawText("Enter para confirmar  /  Mouse",78,596,14,dust);
+}
+
+void Game::drawRanking() const
+{
+    drawCentered("Melhores partidas",60,36,Config::accent);
+    DrawText("PONTOS",150,130,18,Config::muted);
+    DrawText("TEMPO",320,130,18,Config::muted);
+    DrawText("DIFICULDADE",485,130,18,Config::muted);
+    DrawText("RESULTADO",710,130,18,Config::muted);
+    if (ranking.empty()) drawCentered("Nenhuma partida registrada.",270,22,Config::text);
+    for (int i=0; i<8; ++i)
+    {
+        const int index = rankingPage*8+i;
+        if (index >= static_cast<int>(ranking.size())) break;
+        const Result& result = ranking[index];
+        const int y = 175+i*40;
+        DrawText(TextFormat("%i.",index+1),85,y,18,GOLD);
+        DrawText(TextFormat("%i",result.score),150,y,20,Config::text);
+        DrawText(TextFormat("%.0f s",result.seconds),320,y,20,Config::text);
+        DrawText(difficultyName(result.difficulty),485,y,20,Config::text);
+        DrawText(result.victory ? "Vitoria" : "Derrota",710,y,20,result.victory ? Config::accent : Config::muted);
+    }
+    drawCentered(TextFormat("Pagina %i | Setas: navegar | Enter / Esc: voltar",rankingPage+1),555,18,Config::muted);
+}
+
+void Game::drawInventory() const
+{
+    drawCentered("Equipamento e coletas",60,34,Config::accent);
+    drawCentered(TextFormat("%s + %s | Escudo %i | Furia %.1fs",weaponName(combat.getMeleeWeapon()),
+        weaponName(combat.getRangedWeapon()),player.getShield(),player.getBonusRemaining()),115,20,Config::text);
+    for (int kind=0; kind<9; ++kind)
+    {
+        const float x=90+(kind%3)*265, y=170+(kind/3)*105;
+        const bool found=player.hasCollected(kind);
+        DrawRectangleRec({x,y,250,90},Config::panel);
+        DrawRectangleLinesEx({x,y,250,90},1,found ? Config::accent : Config::muted);
+        if (kind>=3 && kind<=6) drawWeapon(static_cast<WeaponType>(kind-3),{x+30,y+44},{1,0},0.65f);
+        else
+        {
+            const Vector2 center{x+30,y+44};
+            const Color color = !found ? Config::muted : kind == 0 ? GREEN : kind == 1 ? SKYBLUE :
+                kind == 2 ? PURPLE : kind == 7 ? SKYBLUE : GOLD;
+            if (kind == 0)
+            {
+                DrawRectangleRec({center.x-12,center.y-12,24,24},Fade(color,0.6f));
+                DrawLineEx({center.x-7,center.y},{center.x+7,center.y},3,WHITE);
+                DrawLineEx({center.x,center.y-7},{center.x,center.y+7},3,WHITE);
+            }
+            else if (kind == 8)
+            {
+                DrawCircleLines(center.x-5,center.y,6,color);
+                DrawLineEx({center.x+1,center.y},{center.x+15,center.y},3,color);
+                DrawLineEx({center.x+12,center.y},{center.x+12,center.y+6},3,color);
+            }
+            else if (kind == 1) DrawPoly(center,5,13,180,color);
+            else
+            {
+                DrawPoly(center,4,13,0,color);
+                DrawPoly(center,4,5,0,WHITE);
+            }
+        }
+        DrawText(collectionName(kind),x+65,y+20,18,found ? Config::text : Config::muted);
+        DrawText(found ? "Coletado" : "Nao encontrado",x+65,y+50,14,found ? Config::accent : Config::muted);
+    }
+    drawCentered(companion.isActive() ? "Vigia: acompanhando e ajudando no combate" : "Companheiro: converse com o vigia na entrada",510,18,Config::accent);
+    drawCentered("I / Enter / Esc: retomar",555,20,GOLD);
 }

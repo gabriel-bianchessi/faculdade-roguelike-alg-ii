@@ -169,6 +169,8 @@ Baseado no [plano ampliado](anotacoes.md). Executar na ordem das etapas e marcar
 
 Os roteiros para as duas tarefas humanas restantes estão em [docs/DEFESA.md](docs/DEFESA.md). As evidências técnicas estão em [docs/VALIDACAO.md](docs/VALIDACAO.md), e a preparação do pacote/envio em [docs/ENTREGA.md](docs/ENTREGA.md). Marcar ensaio e prática somente após cada integrante realizá-los.
 
+A continuação do trabalho está em [TODO-parte-2.md](TODO-parte-2.md).
+
 ## Limites desta versão
 
-Desktop Linux, teclado e mouse. Sem multiplayer, salvamento, geração procedural ou áudio. A checklist detalha a implementação; mudanças nas regras devem ser refletidas também em `anotacoes.md`.
+Desktop Linux, teclado e mouse. Sem multiplayer, salvamento do progresso, geração procedural ou áudio. A parte 2 acrescenta ranking salvo em arquivo. A checklist detalha a implementação; mudanças nas regras devem ser refletidas também em `anotacoes.md`.

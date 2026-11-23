@@ -6,7 +6,7 @@ O código, testes, plano e instruções estão preparados. Gere o pacote com:
 bash scripts/package.sh
 ```
 
-O arquivo `entrega/rogue-like.tar.gz` contém os fontes do jogo, a Raylib necessária à compilação, Premake, testes, PDF, plano, checklist e estes documentos. Não inclui credenciais, `.git`, caches ou executáveis do jogo. Extraia e siga o README dentro da pasta `rogue-like`.
+O arquivo `entrega/rogue-like.tar.gz` contém os fontes do jogo, a Raylib necessária à compilação, Premake, testes, os dois PDFs, plano, checklists e estes documentos. Não inclui credenciais, `.git`, caches, rankings pessoais ou executáveis do jogo. Extraia e siga o README dentro da pasta `rogue-like`.
 
 Antes de postar, os integrantes precisam:
 
@@ -18,3 +18,6 @@ Antes de postar, os integrantes precisam:
 O `origin` atual aponta para `raylib-extras/raylib-quickstart`, o template original. Esse endereço não identifica a entrega deste trabalho. Não foi alterado nem houve publicação externa. Se a equipe optar pelo GitHub, deve usar o seu repositório; os fontes atuais também precisam constar nele antes de entregar o link.
 
 A preparação do pacote pode ser validada localmente. Envio ao professor, autoria dos integrantes e realização da defesa dependem da equipe e não podem ser comprovados por testes automatizados.
+
+
+A parte 2 está documentada em `PARTE-2.md` e `TODO-parte-2.md`. O pacote contém os requisitos implementados; áudio está adiado e o modo Computador/NPC que joga sozinho permanece pendente de especificação. Esses dois pontos devem ser concluídos antes de declarar atendimento integral ao segundo enunciado.

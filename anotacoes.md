@@ -137,3 +137,17 @@ Centralizar valores de balanceamento. Manter o build existente e validar com `ma
 ## Premissas
 
 O alvo inicial será desktop Linux com teclado e mouse. Os valores numéricos são parâmetros iniciais ajustáveis. Salvamento, multiplayer e áudio ficam fora desta versão.
+
+
+# Parte 2 — regras implementadas
+
+A checklist desta etapa é `TODO-parte-2.md`; a matriz do enunciado está em `docs/PARTE-2.md`.
+
+- Três dificuldades: Fácil/Normal/Difícil. Quantidade base de inimigos recebe -1/0/+1; ocupação de recursos após o grupo inicial: 75%/50%/25%; tipos perseguidor/atirador/patrulheiro: 70/20/10%, 34/33/33%, 20/40/40%. Sala 2 mantém perseguidores introdutórios. Pontos fixos, chave, armas opcionais, chefe e salas seguras são preservados.
+- Pontuação anterior recebe penalidade adicional `piso(tempo ativo / 10)`, com mínimo zero. Ranking registra uma vez cada vitória/derrota, com pontos, segundos, dificuldade e resultado. Ordem decrescente de pontos e crescente de tempo no empate; arquivo por usuário, independente da pasta de execução. Não salva a partida em andamento.
+- Inventário em I pausa o mundo e mostra equipamentos e histórico de nove tipos, incluindo chave. As armas iniciais são registradas sem pontuar coleta. Cristal de XP é o oitavo item distinto, além da chave: 30 XP em recursos comuns/refúgio, 100 XP no tesouro. Subir por cristal também abre atributos.
+- Fúria colore o sprite de roxo e cria uma aura enquanto o bônus está ativo. Escudo e armas preservam seus efeitos visuais.
+- Inimigos comuns vivos destroem consumíveis por contato com linha livre, gerando um aviso de 0,8 s. Armas e chave nunca são destruídas. Coleta do jogador é resolvida antes dessa destruição; itens destruídos não pontuam coleta.
+- O vigia é recrutado ao terminar o diálogo inicial. Usa a própria textura, segue a 220 unidades/s com colisão de 12 e BFS a cada 0,35 s quando necessário; mantém distância de 72. É invulnerável, não bloqueia entidades e causa 8 de dano a cada 0,8 s no inimigo mais próximo a até 180, respeitando paredes. A remoção única de mortos de Combat continua responsável por XP/pontuação/vitória. Acompanha entradas de sala e congela fora do estado Playing; reiniciar desfaz recrutamento.
+- Três etapas identificadas no HUD: entrada (1–3), fortaleza interna/ramificações (4–11), santuário (12). Sala 13 é bônus, sem inimigos ou ondas. Rachadura na parede inferior direita do depósito (10), examinada com E, cria a ligação 10–13 uma vez. Recompensas e descoberta persistem; a passagem é bloqueada por inimigos como as demais. Reiniciar fecha o segredo.
+- Áudio adiado a pedido. Modo Computador/NPC autônomo fora deste escopo, aguardando especificação separada.

@@ -73,10 +73,11 @@ int main()
     Game game;
     game.startNewGame();
     game.dungeon = Dungeon(42);
-    const int route[] = {2,3,9,3,4,5,10,5,4,3,2,8,2,3,4,5,6,11,6,7,12};
+    const int route[] = {2,3,9,3,4,5,10,13,10,5,4,3,2,8,2,3,4,5,6,11,6,7,12};
     std::size_t destination = 0;
     const float dt = 1.0f/60;
     bool talked = false;
+    bool recruited = false;
     for (int frame = 0; frame < 120000 && game.state != GameState::Victory && game.state != GameState::Defeat; ++frame)
     {
         game.input = {};
@@ -113,6 +114,19 @@ int main()
         else
         {
             bool selected = false;
+            if (room.getId() == 1 && !recruited)
+            {
+                goal = room.getNpc().position;
+                selected = true;
+                if (Vector2Distance(goal,position) < 55) { game.input.interact = true; recruited = true; }
+            }
+            if (room.getId() == 10 && !game.dungeon.isSecretOpen())
+            {
+                goal = game.dungeon.getSecretPosition();
+                goal.x -= 35;
+                selected = true;
+                if (Vector2Distance(goal,position) < 15) game.input.interact = true;
+            }
             if (room.getId() == 8 && !talked)
             {
                 goal = room.getNpc().position;
@@ -122,7 +136,7 @@ int main()
             if (!selected && room.hasKey()) { goal = room.getKeyPosition(); selected = true; }
             if (!selected)
                 for (const Item& item : room.getItems())
-                    if ((item.type == ItemType::HealthKit && game.player.getHealth() < game.player.getMaxHealth()) ||
+                    if (item.type == ItemType::Experience || (item.type == ItemType::HealthKit && game.player.getHealth() < game.player.getMaxHealth()) ||
                         (item.type == ItemType::Weapon && (item.weapon == WeaponType::Spear || item.weapon == WeaponType::Shotgun) &&
                          item.weapon != game.combat.getMeleeWeapon() && item.weapon != game.combat.getRangedWeapon()))
                     {
@@ -135,7 +149,7 @@ int main()
             if (!selected && destination < std::size(route))
             {
                 // Uma luta pode levar de volta a uma porta; retoma a rota a partir da sala atual.
-                int previous[13] = {};
+                int previous[14] = {};
                 std::queue<int> pending;
                 previous[room.getId()] = room.getId(); pending.push(room.getId());
                 while (!pending.empty() && previous[route[destination]] == 0)
@@ -158,7 +172,8 @@ int main()
     }
     std::cout << "Estado " << static_cast<int>(game.state) << ", vida " << game.player.getHealth() << ", mortes " << game.player.getDefeatedCount() << ", tempo " << game.elapsedTime << "\n";
     assert(game.state == GameState::Victory);
-    assert(game.dungeon.getDiscoveredCount() == 12 && game.dungeon.hasKey() && talked);
+    assert(game.dungeon.getDiscoveredCount() == 13 && game.dungeon.hasKey() && talked);
+    assert(game.companion.isActive() && game.dungeon.isSecretOpen());
     assert(game.player.getDefeatedCount() >= 10 && game.player.getLevel() > 1 && game.player.getDistance() > 10000);
     game.input = {}; game.input.confirm = true; game.update(0);
     assert(game.state == GameState::Playing && game.player.getLevel() == 1);
@@ -168,5 +183,5 @@ int main()
     assert(game.state == GameState::Defeat);
     game.input.confirm = true; game.update(0);
     assert(game.state == GameState::Playing && game.player.getHealth() == 60 && game.player.getDistance() == 0);
-    std::cout << "OK: partida completa por entradas reais, 12 salas, chave, armas, NPC, chefe, derrota e reinicios.\n";
+    std::cout << "OK: partida completa por entradas reais, 13 salas, chave, armas, companheiro, tesouro, NPC, chefe, derrota e reinicios.\n";
 }
